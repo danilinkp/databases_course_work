@@ -46,10 +46,10 @@ public class Restaurant {
     @Column(name = "email", nullable = false, unique = true)
     private String email;
 
-    @Column(name = "latitude", precision = 10, scale = 8)
+    @Column(name = "latitude", precision = 12, scale = 8)
     private BigDecimal latitude;
 
-    @Column(name = "longitude", precision = 11, scale = 8)
+    @Column(name = "longitude", precision = 12, scale = 8)
     private BigDecimal longitude;
 
     @Column(name = "opening_time")
@@ -57,14 +57,6 @@ public class Restaurant {
 
     @Column(name = "closing_time")
     private LocalTime closingTime;
-
-    @Column(name = "min_order_amount", precision = 10, scale = 2)
-    @Builder.Default
-    private BigDecimal minOrderAmount = BigDecimal.ZERO;
-
-    @Column(name = "delivery_fee", precision = 10, scale = 2)
-    @Builder.Default
-    private BigDecimal deliveryFee = BigDecimal.ZERO;
 
     @Column(name = "is_active")
     @Builder.Default
@@ -77,14 +69,4 @@ public class Restaurant {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private Instant updatedAt;
-
-//    @OneToMany(mappedBy = "restaurant")
-//    private Set<DishCategory> dishCategories = new LinkedHashSet<>();
-
-//    @OneToMany(mappedBy = "restaurant")
-//    private Set<Dish> dishes = new LinkedHashSet<>();
-
-//    @OneToMany(mappedBy = "restaurant")
-//    private Set<Order> orders = new LinkedHashSet<>();
-
 }

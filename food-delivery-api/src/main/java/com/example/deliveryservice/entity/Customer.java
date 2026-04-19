@@ -2,7 +2,6 @@ package com.example.deliveryservice.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -49,11 +48,4 @@ public class Customer {
     @UpdateTimestamp
     @Column(name = "updated_at", updatable = false)
     private Instant updatedAt;
-
-//    @OneToMany(mappedBy = "customer")
-//    private List<CustomerAddress> customerAddresses = new ArrayList<>();
-//
-//    @OneToMany(mappedBy = "customer")
-//    private List<Order> orders = new ArrayList<>();
-
 }

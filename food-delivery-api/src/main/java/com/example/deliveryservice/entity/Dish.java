@@ -67,7 +67,4 @@ public class Dish {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private Instant updatedAt;
-
-//    @OneToMany(mappedBy = "dish")
-//    private Set<OrderItem> orderItems = new LinkedHashSet<>();
 }

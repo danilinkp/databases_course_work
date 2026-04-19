@@ -20,9 +20,11 @@ CREATE INDEX IF NOT EXISTS idx_restaurants_cuisine ON restaurants(cuisine_type);
 CREATE INDEX IF NOT EXISTS idx_restaurants_rating ON restaurants(rating DESC);
 CREATE INDEX IF NOT EXISTS idx_restaurants_active ON restaurants(is_active) WHERE is_active = true;
 
+-- delivery_zones
+CREATE INDEX idx_delivery_zones_restaurant_postal ON delivery_zones(restaurant_id, postal_code);
+
 -- dish categories
-CREATE INDEX IF NOT EXISTS idx_dish_categories_restaurant ON dish_categories(restaurant_id);
-CREATE INDEX IF NOT EXISTS idx_dish_categories_display ON dish_categories(restaurant_id, display_order);
+CREATE INDEX IF NOT EXISTS idx_dish_categories_display ON dish_categories(display_order);
 
 -- dishes
 CREATE INDEX IF NOT EXISTS idx_dishes_restaurant ON dishes(restaurant_id);

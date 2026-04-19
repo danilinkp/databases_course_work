@@ -54,6 +54,12 @@ public class Order {
     @Column(name = "delivery_address", length = Integer.MAX_VALUE)
     private String deliveryAddress;
 
+    @Column(name = "delivery_latitude", nullable = false, precision = 12, scale = 8)
+    private BigDecimal deliveryLatitude;
+
+    @Column(name = "delivery_longitude", nullable = false, precision = 12, scale = 8)
+    private BigDecimal deliveryLongitude;
+
     @Column(name = "subtotal", nullable = false, precision = 10, scale = 2)
     private BigDecimal subtotal;
 
@@ -62,7 +68,6 @@ public class Order {
     private BigDecimal deliveryFee = BigDecimal.ZERO;
 
     @Column(name = "discount", precision = 10, scale = 2)
-    @Builder.Default
     private BigDecimal discount = BigDecimal.ZERO;
 
     @Column(name = "total_amount", nullable = false, precision = 10, scale = 2)
@@ -97,7 +102,4 @@ public class Order {
 
     @OneToOne(mappedBy = "order")
     private Review review;
-
-//    @OneToMany(mappedBy = "order")
-//    private List<OrderItem> orderItems = new ArrayList<>();
 }

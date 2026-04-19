@@ -48,10 +48,6 @@ public class Courier {
     @Builder.Default
     private BigDecimal rating = BigDecimal.ZERO;
 
-    @Column(name = "delivery_count")
-    @Builder.Default
-    private Integer deliveryCount = 0;
-
     @Column(name = "is_available")
     @Builder.Default
     private Boolean isAvailable = true;
@@ -67,7 +63,4 @@ public class Courier {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private Instant updatedAt;
-
-//    @OneToMany(mappedBy = "courier")
-//    private List<Order> orders = new ArrayList<>();
 }

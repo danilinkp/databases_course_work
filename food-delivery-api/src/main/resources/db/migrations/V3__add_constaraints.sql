@@ -72,10 +72,6 @@ ALTER TABLE couriers
     ADD CONSTRAINT check_rating CHECK (rating >= 0 AND rating <= 5),
     ALTER COLUMN rating SET DEFAULT 0;
 ALTER TABLE couriers
-    ALTER COLUMN delivery_count SET DEFAULT 0;
-ALTER TABLE couriers
-    ADD CONSTRAINT check_delivery_count CHECK (delivery_count >= 0);
-ALTER TABLE couriers
     ALTER COLUMN is_active SET DEFAULT true;
 ALTER TABLE couriers
     ALTER COLUMN is_available SET DEFAULT true;
@@ -107,15 +103,47 @@ ALTER TABLE restaurants
     ALTER COLUMN email SET NOT NULL,
     ADD CONSTRAINT restaurants_email_unique UNIQUE (email);
 ALTER TABLE restaurants
-    ALTER COLUMN min_order_amount SET DEFAULT 0;
-ALTER TABLE restaurants
-    ALTER COLUMN delivery_fee SET DEFAULT 0;
-ALTER TABLE restaurants
     ALTER COLUMN is_active SET DEFAULT true;
 ALTER TABLE restaurants
     ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP;
 ALTER TABLE restaurants
     ALTER COLUMN updated_at SET DEFAULT CURRENT_TIMESTAMP;
+
+-- delivery_zones
+ALTER TABLE delivery_zones
+    ADD CONSTRAINT add_delivery_zones_pk PRIMARY KEY (zone_id),
+    ALTER COLUMN zone_id SET DEFAULT gen_random_uuid(),
+    ALTER COLUMN zone_id SET NOT NULL;
+ALTER TABLE delivery_zones
+    ADD CONSTRAINT restaurant_id_fkey FOREIGN KEY (restaurant_id) REFERENCES restaurants (restaurant_id) ON DELETE CASCADE,
+    ALTER COLUMN restaurant_id SET NOT NULL;
+ALTER TABLE delivery_zones
+    ALTER COLUMN zone_name SET NOT NULL;
+ALTER TABLE delivery_zones
+    ALTER COLUMN postal_code SET NOT NULL;
+ALTER TABLE delivery_zones
+    ADD CONSTRAINT check_delivery_fee_positive CHECK (delivery_fee >= 0),
+    ALTER COLUMN delivery_fee SET DEFAULT 0;
+ALTER TABLE delivery_zones
+    ADD CONSTRAINT check_near_threshold_positive CHECK (near_threshold >= 0),
+    ALTER COLUMN near_threshold SET DEFAULT 3;
+ALTER TABLE delivery_zones
+    ADD CONSTRAINT check_far_threshold_positive CHECK (far_threshold >= 0),
+    ALTER COLUMN far_threshold SET DEFAULT 5;
+ALTER TABLE delivery_zones
+    ADD CONSTRAINT check_fee_per_km_positive CHECK (fee_per_km >= 0),
+    ALTER COLUMN fee_per_km SET DEFAULT 0;
+ALTER TABLE delivery_zones
+    ADD CONSTRAINT check_peak_surcharge_positive CHECK (peak_surcharge >= 0),
+    ALTER COLUMN peak_surcharge SET DEFAULT 0;
+ALTER TABLE delivery_zones
+    ADD CONSTRAINT check_weekend_surcharge_positive CHECK (weekend_surcharge >= 0),
+    ALTER COLUMN weekend_surcharge SET DEFAULT 0;
+ALTER TABLE delivery_zones
+    ADD CONSTRAINT check_min_order_amount_positive CHECK (min_order_amount >= 0),
+    ALTER COLUMN min_order_amount SET DEFAULT 0;
+ALTER TABLE delivery_zones
+    ADD CONSTRAINT check_delivery_time_positive CHECK (delivery_time >= 0);
 
 -- dish categories
 ALTER TABLE dish_categories
@@ -123,9 +151,6 @@ ALTER TABLE dish_categories
 ALTER TABLE dish_categories
     ALTER COLUMN category_id SET DEFAULT gen_random_uuid(),
     ALTER COLUMN category_id SET NOT NULL;
-ALTER TABLE dish_categories
-    ADD CONSTRAINT categories_restaurant_id_fkey FOREIGN KEY (restaurant_id) REFERENCES restaurants (restaurant_id) ON DELETE CASCADE,
-    ALTER COLUMN restaurant_id SET NOT NULL;
 ALTER TABLE dish_categories
     ALTER COLUMN name SET NOT NULL;
 ALTER TABLE dish_categories
@@ -144,8 +169,6 @@ ALTER TABLE dishes
     ALTER COLUMN restaurant_id SET NOT NULL;
 ALTER TABLE dishes
     ADD CONSTRAINT dishes_category_id_fkey FOREIGN KEY (category_id) REFERENCES dish_categories (category_id) ON DELETE SET NULL;
-ALTER TABLE dishes
-    ALTER COLUMN category_id SET NOT NULL;
 ALTER TABLE dishes
     ALTER COLUMN name SET NOT NULL;
 ALTER TABLE dishes
@@ -227,11 +250,6 @@ ALTER TABLE order_items
 ALTER TABLE order_items
     ALTER COLUMN quantity SET NOT NULL,
     ADD CONSTRAINT check_quantity_positive CHECK (quantity > 0);
-ALTER TABLE order_items
-    ALTER COLUMN subtotal SET NOT NULL,
-    ADD CONSTRAINT check_subtotal_positive CHECK (subtotal >= 0);
-ALTER TABLE order_items
-    ADD CONSTRAINT check_item_subtotal_calculation CHECK (subtotal = unit_price * quantity);
 ALTER TABLE order_items
     ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP;
 

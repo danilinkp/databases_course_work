@@ -51,7 +51,6 @@ CREATE TABLE IF NOT EXISTS couriers
     area_of_work   VARCHAR(100),
     vehicle_type   VARCHAR(10),
     rating         DECIMAL(3, 2),
-    delivery_count INTEGER,
 
     is_available   BOOLEAN,
     is_active      BOOLEAN,
@@ -62,36 +61,50 @@ CREATE TABLE IF NOT EXISTS couriers
 
 CREATE TABLE IF NOT EXISTS restaurants
 (
-    restaurant_id    UUID,
+    restaurant_id UUID,
 
-    name             VARCHAR(75),
-    cuisine_type     VARCHAR(25),
-    rating           DECIMAL(4, 2),
-    review_count     INTEGER,
+    name          VARCHAR(75),
+    cuisine_type  VARCHAR(25),
+    rating        DECIMAL(4, 2),
+    review_count  INTEGER,
 
-    address          TEXT,
-    phone            VARCHAR(20),
-    email            VARCHAR(255),
-    latitude         DECIMAL(10, 8),
-    longitude        DECIMAL(11, 8),
+    address       TEXT,
+    phone         VARCHAR(20),
+    email         VARCHAR(255),
+    latitude      DECIMAL(12, 8),
+    longitude     DECIMAL(12, 8),
 
-    opening_time     TIME,
-    closing_time     TIME,
+    opening_time  TIME,
+    closing_time  TIME,
 
-    min_order_amount DECIMAL(10, 2),
-    delivery_fee     DECIMAL(10, 2),
+    is_active     BOOLEAN,
 
-    is_active        BOOLEAN,
+    created_at    TIMESTAMP,
+    updated_at    TIMESTAMP
+);
 
-    created_at       TIMESTAMP,
-    updated_at       TIMESTAMP
+
+CREATE TABLE IF NOT EXISTS delivery_zones
+(
+    zone_id           UUID,
+
+    restaurant_id     UUID,
+
+    zone_name         VARCHAR,
+    postal_code       VARCHAR,
+    delivery_fee      DECIMAL(10, 2),
+    near_threshold    DECIMAL(10, 2),
+    far_threshold     DECIMAL(10, 2),
+    fee_per_km        DECIMAL(10, 2),
+    peak_surcharge    DECIMAL(10, 2),
+    weekend_surcharge DECIMAL(10, 2),
+    min_order_amount  DECIMAL(10, 2),
+    delivery_time     INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS dish_categories
 (
     category_id   UUID,
-
-    restaurant_id UUID,
 
     name          VARCHAR(100),
     description   TEXT,
@@ -135,6 +148,8 @@ CREATE TABLE IF NOT EXISTS orders
     customer_phone   VARCHAR(20),
     restaurant_name  VARCHAR(150),
     delivery_address TEXT,
+    delivery_latitude DECIMAL(12, 8),
+    delivery_longitude DECIMAL(12, 8),
 
     subtotal         DECIMAL(10, 2),
     delivery_fee     DECIMAL(10, 2),
@@ -159,7 +174,6 @@ CREATE TABLE IF NOT EXISTS order_items
     dish_name        VARCHAR(150),
     unit_price       DECIMAL(10, 2),
     quantity         INTEGER,
-    subtotal         DECIMAL(10, 2),
 
     special_requests TEXT,
     created_at       TIMESTAMP

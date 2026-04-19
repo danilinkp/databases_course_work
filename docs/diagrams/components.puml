@@ -1,74 +1,70 @@
 @startuml
 !theme plain
-skinparam componentStyle rectangle
 skinparam backgroundColor white
 skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam ArrowColor #444441
+skinparam ArrowFontSize 11
+
 left to right direction
+
 actor "Пользователь" as User
 
-package "Приложение" {
-    
-    package "Уровень представления" {
-        [Управление клиентами] as CustomerAPI
-        [Управление заказами] as OrderAPI
-        [Управление ресторанами] as RestaurantAPI
-        [Управление курьерами] as CourierAPI
-        [Управление отзывами] as ReviewAPI
+package "Уровень представления" <<Layer>> {
+    package "Управление клиентами" as CustomerAPI
+    package "Управление заказами" as OrderAPI
+    package "Управление ресторанами" as RestaurantAPI
+    package "Управление курьерами" as CourierAPI
+    package "Управление отзывами" as ReviewAPI
+}
+
+package "Уровень бизнес-логики" <<Layer>> {
+    package "Обработка заказов" {
+        package "Расчёт стоимости" as OrderService
+        package "Обработка платежей" as PaymentService
+        package "Управление статусами" as StatusService
     }
-    
-    package "Уровень бизнес-логики" {
-        
-        rectangle "Обработка заказов" {
-            [Расчёт стоимости] as OrderService
-            [Обработка платежей] as PaymentService
-            [Управление статусами] as StatusService
-        }
-        
-        rectangle "Управление доставкой" {
-            [Назначение курьеров] as CourierService
-        }
-        
-        rectangle "Качество сервиса" {
-            [Обработка отзывов] as ReviewService
-            [Расчёт рейтингов] as RatingService
-        }
-        
-        rectangle "Вспомогательные" {
-            [Валидация данных] as ValidationService
-        }
+    package "Управление доставкой" {
+        package "Назначение курьеров" as CourierService
     }
-    
-    package "Уровень доступа к данным" {
-        [Репозитории] as Repositories
+    package "Качество сервиса" {
+        package "Обработка отзывов" as ReviewService
+        package "Расчёт рейтингов" as RatingService
     }
+    package "Вспомогательные" {
+        package "Валидация данных" as ValidationService
+    }
+}
+
+package "Уровень доступа к данным" <<Layer>> {
+    package "Репозитории" as Repositories
 }
 
 database "База данных" as DB
 
-User --> CustomerAPI
-User --> OrderAPI
-User --> RestaurantAPI
-User --> CourierAPI
-User --> ReviewAPI
+User ..> CustomerAPI   : use
+User ..> OrderAPI      : use
+User ..> RestaurantAPI : use
+User ..> CourierAPI    : use
+User ..> ReviewAPI     : use
 
-CustomerAPI --> ValidationService
-OrderAPI --> OrderService
-OrderAPI --> PaymentService
-RestaurantAPI --> ValidationService
-CourierAPI --> CourierService
-CourierAPI --> StatusService
-ReviewAPI --> ReviewService
+CustomerAPI   ..> ValidationService : use
+OrderAPI      ..> OrderService      : use
+OrderAPI      ..> PaymentService    : use
+RestaurantAPI ..> ValidationService : use
+CourierAPI    ..> CourierService    : use
+CourierAPI    ..> StatusService     : use
+ReviewAPI     ..> ReviewService     : use
 
-ReviewService .right.> RatingService : "Пересчёт\nрейтингов"
+ReviewService ..> RatingService : call
 
-OrderService --> Repositories
-PaymentService --> Repositories
-CourierService --> Repositories
-ValidationService --> Repositories
-StatusService --> Repositories
-ReviewService --> Repositories
-RatingService --> Repositories
+OrderService      ..> Repositories : use
+PaymentService    ..> Repositories : use
+CourierService    ..> Repositories : use
+ValidationService ..> Repositories : use
+StatusService     ..> Repositories : use
+ReviewService     ..> Repositories : use
+RatingService     ..> Repositories : use
 
-Repositories --> DB
-
+Repositories ..> DB : use
 @enduml

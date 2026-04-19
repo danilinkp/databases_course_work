@@ -398,3 +398,10 @@
 \makeatletter
 \pretocmd{\bibitem}{\stepcounter{references}}{}{}
 \makeatother
+
+% Создание элемента
+\RequirePackage{enumitem}
+\newcommand{\definition}[2]
+{
+	\item \noindent #1 --- #2
+}
