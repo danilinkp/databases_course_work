@@ -1,0 +1,74 @@
+@startuml
+!theme plain
+skinparam componentStyle rectangle
+skinparam backgroundColor white
+skinparam shadowing false
+left to right direction
+actor "Пользователь" as User
+
+package "Приложение" {
+    
+    package "Уровень представления" {
+        [Управление клиентами] as CustomerAPI
+        [Управление заказами] as OrderAPI
+        [Управление ресторанами] as RestaurantAPI
+        [Управление курьерами] as CourierAPI
+        [Управление отзывами] as ReviewAPI
+    }
+    
+    package "Уровень бизнес-логики" {
+        
+        rectangle "Обработка заказов" {
+            [Расчёт стоимости] as OrderService
+            [Обработка платежей] as PaymentService
+            [Управление статусами] as StatusService
+        }
+        
+        rectangle "Управление доставкой" {
+            [Назначение курьеров] as CourierService
+        }
+        
+        rectangle "Качество сервиса" {
+            [Обработка отзывов] as ReviewService
+            [Расчёт рейтингов] as RatingService
+        }
+        
+        rectangle "Вспомогательные" {
+            [Валидация данных] as ValidationService
+        }
+    }
+    
+    package "Уровень доступа к данным" {
+        [Репозитории] as Repositories
+    }
+}
+
+database "База данных" as DB
+
+User --> CustomerAPI
+User --> OrderAPI
+User --> RestaurantAPI
+User --> CourierAPI
+User --> ReviewAPI
+
+CustomerAPI --> ValidationService
+OrderAPI --> OrderService
+OrderAPI --> PaymentService
+RestaurantAPI --> ValidationService
+CourierAPI --> CourierService
+CourierAPI --> StatusService
+ReviewAPI --> ReviewService
+
+ReviewService .right.> RatingService : "Пересчёт\nрейтингов"
+
+OrderService --> Repositories
+PaymentService --> Repositories
+CourierService --> Repositories
+ValidationService --> Repositories
+StatusService --> Repositories
+ReviewService --> Repositories
+RatingService --> Repositories
+
+Repositories --> DB
+
+@enduml

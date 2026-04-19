@@ -1,0 +1,27 @@
+\documentclass[a4paper,oneside,14pt]{extarticle}
+
+\input{preamble}
+
+\begin{document}
+
+\includepdf[pages=1]{ИУ7-63Б Павлов Даниил Вячеславович.pdf}
+% \includepdf[pages=-]{ИУ7-63Б Павлов Даниил Вячеславович.pdf}
+
+\setcounter{page}{4}
+
+\include{referat}
+
+\renewcommand{\contentsname}{СОДЕРЖАНИЕ}
+\tableofcontents
+
+\include{00-introduction}
+\include{01-analytical}
+\include{02-design}
+\include{03-technological}
+\include{04-research}
+\include{05-conclusion}
+\include{06-bibliography}
+
+\include{appendix-a}
+
+\end{document}
