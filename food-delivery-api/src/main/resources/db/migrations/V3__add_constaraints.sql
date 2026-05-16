@@ -69,6 +69,8 @@ ALTER TABLE couriers
 ALTER TABLE couriers
     ALTER COLUMN employee_date SET NOT NULL;
 ALTER TABLE couriers
+    ALTER COLUMN vehicle_type SET NOT NULL;
+ALTER TABLE couriers
     ADD CONSTRAINT check_rating CHECK (rating >= 0 AND rating <= 5),
     ALTER COLUMN rating SET DEFAULT 0;
 ALTER TABLE couriers

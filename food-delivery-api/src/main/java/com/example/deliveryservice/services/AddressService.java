@@ -1,5 +1,7 @@
 package com.example.deliveryservice.services;
 
+import com.example.deliveryservice.dto.command.AddAddressCommand;
+import com.example.deliveryservice.dto.command.UpdateAddressCommand;
 import com.example.deliveryservice.entity.Customer;
 import com.example.deliveryservice.entity.CustomerAddress;
 import com.example.deliveryservice.exceptions.ResourceNotFoundException;
@@ -12,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -22,23 +23,22 @@ public class AddressService {
     private final AddressRepository addressRepository;
     private final CustomerRepository customerRepository;
 
-    public CustomerAddress addAddress(UUID customerId, String region, String city, String street,
-                                      String house, String apartment, String addressDetails,
-                                      String postalCode, Double latitude, Double longitude) {
+    @Transactional
+    public CustomerAddress addAddress(UUID customerId, AddAddressCommand command) {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer not found: " + customerId));
 
         CustomerAddress address = CustomerAddress.builder()
                 .customer(customer)
-                .region(region)
-                .city(city)
-                .street(street)
-                .house(house)
-                .apartment(apartment)
-                .addressDetails(addressDetails)
-                .postalCode(postalCode)
-                .latitude(BigDecimal.valueOf(latitude))
-                .longitude(BigDecimal.valueOf(longitude))
+                .region(command.region())
+                .city(command.city())
+                .street(command.street())
+                .house(command.house())
+                .apartment(command.apartment())
+                .addressDetails(command.addressDetails())
+                .postalCode(command.postalCode())
+                .latitude(BigDecimal.valueOf(command.latitude()))
+                .longitude(BigDecimal.valueOf(command.longitude()))
                 .isDefault(false)
                 .build();
 
@@ -59,20 +59,18 @@ public class AddressService {
                 .orElseThrow(() -> new ResourceNotFoundException("Address not found: " + addressId));
     }
 
-    public CustomerAddress update(UUID addressId, String region, String city, String street,
-                                  String house, String apartment, String addressDetails,
-                                  String postalCode, Double latitude, Double longitude) {
+    public CustomerAddress update(UUID addressId, UpdateAddressCommand command) {
         CustomerAddress address = getById(addressId);
 
-        if (city != null) address.setCity(city);
-        if (street != null) address.setStreet(street);
-        if (house != null) address.setHouse(house);
-        if (region != null) address.setRegion(region);
-        if (apartment != null) address.setApartment(apartment);
-        if (postalCode != null) address.setPostalCode(postalCode);
-        if (latitude != null) address.setLatitude(BigDecimal.valueOf(latitude));
-        if (longitude != null) address.setLongitude(BigDecimal.valueOf(longitude));
-        if (addressDetails != null) address.setAddressDetails(addressDetails);
+        if (command.city() != null) address.setCity(command.city());
+        if (command.street() != null) address.setStreet(command.street());
+        if (command.house() != null) address.setHouse(command.house());
+        if (command.region() != null) address.setRegion(command.region());
+        if (command.apartment() != null) address.setApartment(command.apartment());
+        if (command.postalCode() != null) address.setPostalCode(command.postalCode());
+        if (command.latitude() != null) address.setLatitude(BigDecimal.valueOf(command.latitude()));
+        if (command.longitude() != null) address.setLongitude(BigDecimal.valueOf(command.longitude()));
+        if (command.addressDetails() != null) address.setAddressDetails(command.addressDetails());
 
         return addressRepository.save(address);
     }

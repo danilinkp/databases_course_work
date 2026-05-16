@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS couriers
     employee_date  DATE,
 
     area_of_work   VARCHAR(100),
-    vehicle_type   VARCHAR(10),
+    vehicle_type   vehicle_type,
     rating         DECIMAL(3, 2),
 
     is_available   BOOLEAN,

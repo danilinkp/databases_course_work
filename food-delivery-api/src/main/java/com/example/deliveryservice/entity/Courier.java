@@ -41,8 +41,9 @@ public class Courier {
     @Column(name = "area_of_work", length = 100)
     private String areaOfWork;
 
-    @Column(name = "vehicle_type", length = 10)
-    private String vehicleType;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "vehicle_type", nullable = false)
+    private VehicleType vehicleType;
 
     @Column(name = "rating", precision = 3, scale = 2)
     @Builder.Default

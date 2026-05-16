@@ -1,0 +1,15 @@
+package com.example.deliveryservice.repository;
+
+import com.example.deliveryservice.entity.Payment;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
+import java.util.UUID;
+
+@Repository
+public interface PaymentRepository extends JpaRepository<Payment, UUID> {
+    boolean existsByOrderId(UUID orderId);
+
+    Optional<Payment> findByOrderId(UUID orderId);
+}

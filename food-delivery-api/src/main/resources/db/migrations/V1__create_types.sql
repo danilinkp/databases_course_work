@@ -25,4 +25,11 @@ CREATE TYPE payment_status AS ENUM (
     'refunded'
     );
 
+
+CREATE TYPE vehicle_type AS ENUM (
+    'car',
+    'bicycle',
+    'walking'
+    );
+
 COMMIT;

@@ -24,7 +24,7 @@ public class DeliveryZone {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "restaurant_id", nullable = false)
-    private Customer customer;
+    private Restaurant restaurant;
 
     @Column(name = "zone_name", nullable = false)
     private String zoneName;
