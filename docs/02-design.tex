@@ -7,9 +7,12 @@
     \item \texttt{customer\_addresses} --- таблица адресов клиентов;
     \item \texttt{couriers} --- таблица курьеров;
     \item \texttt{restaurants} --- таблица ресторанов;
+    \item \texttt{admins} --- таблица администраторов;
+    \item \texttt{admin\_restaurants} --- таблица связи администраторов и ресторанов;
     \item \texttt{delivery\_zones} --- таблица зон доставки;
     \item \texttt{orders} --- таблица заказов;
     \item \texttt{order\_items} --- таблица деталей заказов;
+    \item \texttt{dish\_category\_mapping} --- таблица связи блюд и категорий;
     \item \texttt{dishes} --- таблица блюд;
     \item \texttt{dish\_categories} --- таблица категории блюд;
     \item \texttt{payments} --- таблица платежей;
@@ -24,7 +27,7 @@
 \caption{Информация о таблице клиентов}
 \label{tab:customers}
 \renewcommand{\arraystretch}{1.35}
-\begin{tabularx}{\textwidth}{|L|L|L|L|}
+\begin{tabularx}{\textwidth}{|l|L|l|L|}
 \hline
 \multicolumn{1}{|c|}{\textbf{Атрибут}} & 
 \multicolumn{1}{c|}{\textbf{Значение}} & 
@@ -41,7 +44,9 @@ email & Электронная почта & Строка & Не нулевой, 
 \hline
 password\_hash & Хэш пароля & Строка & Не нулевой \\
 \hline
-bonuses & Количество бонусов & Целое число & Неотрицательное число, не нулевой \\
+bonuses & Количество бонусов & Целое число & Неотрицательное число, по умолчанию 0 \\
+\hline
+is\_active & Индикатор активности аккаунта & Логический & По умолчанию <<Истина>> \\
 \hline
 created\_at & Дата регистрации & Дата и время & По умолчанию <<Текущая дата>> \\
 \hline
@@ -56,7 +61,7 @@ updated\_at & Дата изменения & Дата и время & По умо
 \caption{Информация о таблице адресов клиента}
 \label{tab:customer_addresses}
 \renewcommand{\arraystretch}{1.35}
-\begin{tabularx}{\textwidth}{|L|L|L|L|}
+\begin{tabularx}{\textwidth}{|l|L|l|L|}
 \hline
 \multicolumn{1}{|c|}{\textbf{Атрибут}} & 
 \multicolumn{1}{c|}{\textbf{Значение}} & 
@@ -98,7 +103,7 @@ created\_at & Дата создания & Дата и время & По умол
 \caption{Информация о таблице курьеров}
 \label{tab:couriers}
 \renewcommand{\arraystretch}{1.35}
-\begin{tabularx}{\textwidth}{|L|L|L|L|}
+\begin{tabularx}{\textwidth}{|l|L|l|L|}
 \hline
 \multicolumn{1}{|c|}{\textbf{Атрибут}} & 
 \multicolumn{1}{c|}{\textbf{Значение}} & 
@@ -119,7 +124,7 @@ employee\_date & Дата трудоустройства & Дата & Не ну�
 \hline
 area\_of\_work & Область работы & Строка & \\
 \hline
-vehicle\_type & Тип передвижения & Строка & \\
+vehicle\_type & Тип передвижения & Перечисление & \\
 \hline
 rating & Рейтинг курьера & Вещественное число & Неотрицательное, не больше 5 \\
 \hline
@@ -137,10 +142,41 @@ updated\_at & Дата изменения & Дата и время & По умо
 \begin{table}[H]
 \centering
 \small
+\caption{Информация о таблице администраторов}
+\label{tab:admins}
+\renewcommand{\arraystretch}{1.35}
+\begin{tabularx}{\textwidth}{|l|L|l|L|}
+\hline
+\multicolumn{1}{|c|}{\textbf{Атрибут}} & 
+\multicolumn{1}{c|}{\textbf{Значение}} & 
+\multicolumn{1}{c|}{\textbf{Тип данных}} & 
+\multicolumn{1}{c|}{\textbf{Ограничение}} \\
+\hline
+admin\_id & Идентификатор & UUID & Первичный ключ, не нулевой \\
+\hline
+email & Электронная почта & Строка & Не нулевой, уникальный \\
+\hline
+password\_hash & Хэш пароля & Строка & Не нулевой \\
+\hline
+role & Роль администратора & Перечисление & Не нулевой \\
+\hline
+is\_active & Индикатор активности аккаунта & Логический & По умолчанию <<Истина>> \\
+\hline
+created\_at & Дата регистрации & Дата и время & По умолчанию <<Текущая дата>> \\
+\hline
+updated\_at & Дата изменения & Дата и время & По умолчанию <<Текущая дата>> \\
+\hline
+\end{tabularx}
+\end{table}
+
+
+\begin{table}[H]
+\centering
+\small
 \caption{Информация о таблице ресторанов}
 \label{tab:restaurants}
 \renewcommand{\arraystretch}{1.35}
-\begin{tabularx}{\textwidth}{|L|L|L|L|}
+\begin{tabularx}{\textwidth}{|l|L|l|L|}
 \hline
 \multicolumn{1}{|c|}{\textbf{Атрибут}} & 
 \multicolumn{1}{c|}{\textbf{Значение}} & 
@@ -178,13 +214,34 @@ updated\_at & Дата изменения & Дата и время & По умо
 \end{tabularx}
 \end{table}
 
+
+\begin{table}[H]
+\centering
+\small
+\caption{Информация о таблице связи администраторов и ресторанов}
+\label{tab:admin_restaurants}
+\renewcommand{\arraystretch}{1.35}
+\begin{tabularx}{\textwidth}{|l|L|l|L|}
+\hline
+\multicolumn{1}{|c|}{\textbf{Атрибут}} & 
+\multicolumn{1}{c|}{\textbf{Значение}} & 
+\multicolumn{1}{c|}{\textbf{Тип данных}} & 
+\multicolumn{1}{c|}{\textbf{Ограничение}} \\
+\hline
+admin\_id & Идентификатор администратора & UUID & Внешний ключ, не нулевой \\
+\hline
+restaurant\_id & Идентификатор ресторана & UUID & Внешний ключ, не нулевой \\
+\hline
+\end{tabularx}
+\end{table}
+
 \begin{table}[H]
 \centering
 \small
 \caption{Информация о таблице зон доставки}
 \label{tab:delivery_zones}
 \renewcommand{\arraystretch}{1.35}
-\begin{tabularx}{\textwidth}{|L|L|L|L|}
+\begin{tabularx}{\textwidth}{|l|L|l|L|}
 \hline
 \multicolumn{1}{|c|}{\textbf{Атрибут}} & 
 \multicolumn{1}{c|}{\textbf{Значение}} & 
@@ -201,11 +258,13 @@ postal\_code & Почтовый индекс района & Строка & Не 
 \hline
 delivery\_fee & Базовая стоимость доставки & Вещественное число & Неотрицательное, по умолчанию 0 \\
 \hline
-near\_threshold & Ближний порог расстояния (км) & Вещественное число & Положительное, по умолчанию 3 \\
+near\_threshold & Ближний порог расстояния (км) & Вещественное число & Положительное, по умолчанию 3, near\_threshold $\leqslant$ far\_threshold \\
 \hline
-far\_threshold & Дальний порог расстояния (км) & Вещественное число & Положительное, по умолчанию 5 \\
+far\_threshold & Дальний порог расстояния (км) & Вещественное число & Положительное, по умолчанию 5, far\_threshold $\geqslant$ near\_threshold \\
 \hline
 fee\_per\_km & Надбавка за километр сверх ближнего порога & Вещественное число & Неотрицательное, по умолчанию 0 \\
+\hline
+far\_zone\_multiplier & Коэффициент дальней зоны & Вещественное число & Положительное, неотрицательное, по умолчанию 1.5 \\
 \hline
 peak\_surcharge & Надбавка за доставку в час пик & Вещественное число & Неотрицательное, по умолчанию 0 \\
 \hline
@@ -224,7 +283,7 @@ delivery\_time & Время доставки в минутах & Целое чи
 \caption{Информация о таблице категории блюд}
 \label{tab:dish_categories}
 \renewcommand{\arraystretch}{1.3}
-\begin{tabularx}{\textwidth}{|L|L|L|L|}
+\begin{tabularx}{\textwidth}{|l|L|l|L|}
 \hline
 \multicolumn{1}{|c|}{\textbf{Атрибут}} & 
 \multicolumn{1}{c|}{\textbf{Значение}} & 
@@ -250,7 +309,7 @@ created\_at & Дата добавления & Дата и время & По ум
 \caption{Информация о таблице блюд}
 \label{tab:dishes}
 \renewcommand{\arraystretch}{1.26}
-\begin{tabularx}{\textwidth}{|L|L|L|L|}
+\begin{tabularx}{\textwidth}{|l|L|l|L|}
 \hline
 \multicolumn{1}{|c|}{\textbf{Атрибут}} & 
 \multicolumn{1}{c|}{\textbf{Значение}} & 
@@ -258,8 +317,6 @@ created\_at & Дата добавления & Дата и время & По ум
 \multicolumn{1}{c|}{\textbf{Ограничение}} \\
 \hline
 dish\_id & Идентификатор & UUID & Первичный ключ, не нулевой \\
-\hline
-category\_id & Идентификатор & UUID & Внешний ключ, не нулевой \\
 \hline
 restaurant\_id & Идентификатор & UUID & Внешний ключ, не нулевой \\
 \hline
@@ -291,10 +348,30 @@ updated\_at & Дата изменения & Дата и время & По умо
 \begin{table}[H]
 \centering
 \small
+\caption{Информация о таблице связи блюд и категорий}
+\label{tab:dish_category_mapping}
+\renewcommand{\arraystretch}{1.35}
+\begin{tabularx}{\textwidth}{|l|L|l|L|}
+\hline
+\multicolumn{1}{|c|}{\textbf{Атрибут}} & 
+\multicolumn{1}{c|}{\textbf{Значение}} & 
+\multicolumn{1}{c|}{\textbf{Тип данных}} & 
+\multicolumn{1}{c|}{\textbf{Ограничение}} \\
+\hline
+dish\_id & Идентификатор блюда & UUID & Внешний ключ, не нулевой \\
+\hline
+category\_id & Идентификатор категории & UUID & Внешний ключ, не нулевой \\
+\hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\centering
+\small
 \caption{Информация о таблице заказов}
 \label{tab:orders}
 \renewcommand{\arraystretch}{1.26}
-\begin{tabularx}{\textwidth}{|L|L|L|L|}
+\begin{tabularx}{\textwidth}{|l|L|l|L|}
 \hline
 \multicolumn{1}{|c|}{\textbf{Атрибут}} & 
 \multicolumn{1}{c|}{\textbf{Значение}} & 
@@ -352,7 +429,7 @@ updated\_at & Дата изменения & Дата и время & По умо
 \caption{Информация о таблице деталей заказов}
 \label{tab:order_items}
 \renewcommand{\arraystretch}{1.26}
-\begin{tabularx}{\textwidth}{|L|L|L|L|}
+\begin{tabularx}{\textwidth}{|l|L|l|L|}
 \hline
 \multicolumn{1}{|c|}{\textbf{Атрибут}} & 
 \multicolumn{1}{c|}{\textbf{Значение}} & 
@@ -364,8 +441,6 @@ order\_item\_id & Идентификатор & UUID & Первичный клю�
 order\_id & Идентификатор & UUID & Внешний ключ, не нулевой \\
 \hline
 dish\_id & Идентификатор & UUID & Внешний ключ, не нулевой \\
-\hline
-dish\_name & Название блюда & Строка & Не нулевой \\
 \hline
 unit\_price & Цена за одно блюдо & Вещественное число & Неотрицательное \\
 \hline
@@ -384,7 +459,7 @@ created\_at & Дата и время создания & Дата и время &
 \caption{Информация о таблице отзывов}
 \label{tab:reviews}
 \renewcommand{\arraystretch}{1.26}
-\begin{tabularx}{\textwidth}{|L|L|L|L|}
+\begin{tabularx}{\textwidth}{|l|L|l|L|}
 \hline
 \multicolumn{1}{|c|}{\textbf{Атрибут}} & 
 \multicolumn{1}{c|}{\textbf{Значение}} & 
@@ -417,7 +492,7 @@ updated\_at & Дата и время изменения & Дата и время
 \caption{Информация о таблице платежей}
 \label{tab:payments}
 \renewcommand{\arraystretch}{1.26}
-\begin{tabularx}{\textwidth}{|l|L|L|L|}
+\begin{tabularx}{\textwidth}{|l|L|l|L|}
 \hline
 \multicolumn{1}{|c|}{\textbf{Атрибут}} & 
 \multicolumn{1}{c|}{\textbf{Значение}} & 
@@ -470,7 +545,7 @@ completed\_at & Дата и время завершения & Дата и вре
 \jimg{courier_trigger}{Триггер для обновления рейтинга курьера после добавления отзыва}
 \jimg{function}{Функция подсчёта итоговой суммы заказа. Часть 1}
 \begin{figure}[H]
-		\center{\includegraphics[scale=0.63]{img/function_2}}
+		\center{\includegraphics[scale=0.56]{img/function_2}}
 		\caption{Функция подсчёта итоговой суммы заказа. Часть 2}
 		\label{img:function_2}
 \end{figure}
@@ -494,6 +569,7 @@ completed\_at & Дата и время завершения & Дата и вре
           состава заказа;
     \item чтение данных из таблицы \texttt{payments} для просмотра информации 
           об оплате своих заказов;
+    \item чтение данных из таблицы \texttt{delivery\_zones} для проверки доступности доставки по адресу клиента.
     \item чтение, вставка и изменение собственных записей в таблице \\ \texttt{reviews} для оставления отзывов о заказах.
 \end{itemize}
 
@@ -504,6 +580,7 @@ completed\_at & Дата и время завершения & Дата и вре
     \item полный доступ (чтение, вставка, изменение, удаление) к таблицам \texttt{dish\_categories} и \texttt{dishes} для управления меню своего ресторана;
     \item чтение и изменение записей в таблице \texttt{orders} для обработки заказов своего ресторана;
     \item чтение данных из таблицы \texttt{order\_items} для просмотра состава заказов;
+    \item полный доступ к таблице \texttt{delivery\_zones} для управления зонами доставки своего ресторана.
     \item чтение данных из таблицы \texttt{reviews} для анализа отзывов о своём ресторане.
 \end{itemize}
 
@@ -513,6 +590,7 @@ completed\_at & Дата и время завершения & Дата и вре
     \item чтение и изменение записей в таблице \texttt{orders} для обновления статуса доставки назначенных ему заказов;
     \item чтение данных из таблицы \texttt{order\_items} для просмотра состава доставляемого заказа;
     \item чтение данных из таблиц \texttt{restaurants}, \texttt{customer\_addresses} и \\\texttt{customers}  для получения информации о точках отправления и назначения;
+    \item чтение данных из таблицы \texttt{delivery\_zones} для уточнения границ доставки.
     \item чтение данных из таблицы \texttt{reviews} для просмотра оценок своей работы.
 \end{itemize}
 
@@ -528,10 +606,21 @@ completed\_at & Дата и время завершения & Дата и вре
 
 Структура приложения построена на основе многослойной модели, включающей уровень представления для взаимодействия с клиентскими приложениями, уровень бизнес-логики для реализации бизнес-правил и уровень доступа к данным для работы с БД.
 
+Чтобы снизить нагрузку на основную базу данных, на стыке бизнес-логики и работы с данными спроектирован механизм кэширования. В кэш отправляются данные, которые пользователи запрашивают часто, но меняются они редко: информация о ресторанах, меню и зонах доставки.
+
+На рисунке~\ref{img:redis-sequence} представлена диаграмма последовательности взаимодействия приложения с реляционной СУБД и In-Memory СУБД.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{img/sequence_redis.pdf}
+    \caption{Диаграмма взаимодействия приложения с реляционной СУБД и с In-Memory СУБД}
+    \label{img:redis-sequence}
+\end{figure}
+
+При поступлении запроса данных приложение сначала обращается к In-Memory СУБД. В случае cache hit данные возвращаются клиенту без обращения к реляционной СУБД. В случае cache miss выполняется запрос к реляционной СУБД, результат сохраняется в кэш с заданным временем жизни и возвращается клиенту. При изменении данных старый кэш удаляется с помощью аннотации, чтобы пользователь не получил устаревшую информацию.
+
 На рисунке~\ref{img:components} представлена диаграмма пакетов проектируемого приложения.
 \jimg{components}{Диаграмма пакетов приложения}
-
-
 
 \subsection{Вывод}
 В конструкторском разделе были спроектированы база данных и ограничения её целостности. Обосновано соответствие таблиц третьей нормальной форме (3НФ). Составлен алгоритм функции для расчёта итоговой суммы заказа с учётом скидок и наценок. Описана ролевая модель доступа на уровне базы данных и спроектировано приложение для взаимодействия с базой данных

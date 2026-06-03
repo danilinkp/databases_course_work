@@ -8,6 +8,7 @@ import com.example.deliveryservice.exceptions.ResourceAlreadyExistsException;
 import com.example.deliveryservice.exceptions.ResourceNotFoundException;
 import com.example.deliveryservice.exceptions.WrongPasswordException;
 import com.example.deliveryservice.repository.CustomerRepository;
+import com.example.deliveryservice.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -46,14 +47,24 @@ public class CustomerService {
     }
 
     @Transactional(readOnly = true)
-    public Customer getById(UUID id) {
+    public Customer getById(UUID id, CustomUserDetails currentUser) {
+        // Check if the current user is requesting their own data or is an admin
+        if (!isOwnResource(id, currentUser) && !isAdmin(currentUser)) {
+            throw new ResourceNotFoundException("Customer not found: " + id); // Return not found to avoid leaking existence info
+        }
+
         return customerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer not found: " + id));
     }
 
     @Transactional
-    public Customer update(UUID id, UpdateCustomerCommand command) {
-        Customer customer = getById(id);
+    public Customer update(UUID id, UpdateCustomerCommand command, CustomUserDetails currentUser) {
+        // Check ownership
+        if (!isOwnResource(id, currentUser) && !isAdmin(currentUser)) {
+            throw new ResourceNotFoundException("Customer not found: " + id);
+        }
+
+        Customer customer = getById(id, currentUser); // This will double-check ownership
 
         if (command.phone() != null && !command.phone().equals(customer.getPhone())) {
             if (customerRepository.existsByPhone(command.phone())) {
@@ -75,8 +86,13 @@ public class CustomerService {
     }
 
     @Transactional
-    public void changePassword(UUID id, String oldPassword, String newPassword) {
-        Customer customer = getById(id);
+    public void changePassword(UUID id, String oldPassword, String newPassword, CustomUserDetails currentUser) {
+        // Check ownership
+        if (!isOwnResource(id, currentUser) && !isAdmin(currentUser)) {
+            throw new ResourceNotFoundException("Customer not found: " + id);
+        }
+
+        Customer customer = getById(id, currentUser); // This will double-check ownership
 
         if (!passwordEncoder.matches(oldPassword, customer.getPasswordHash())) {
             throw new WrongPasswordException("Wrong password");
@@ -87,17 +103,48 @@ public class CustomerService {
     }
 
     @Transactional
-    public void delete(UUID id) {
+    public void delete(UUID id, CustomUserDetails currentUser) {
+        // Check ownership
+        if (!isOwnResource(id, currentUser) && !isAdmin(currentUser)) {
+            throw new ResourceNotFoundException("Customer not found: " + id);
+        }
+
         if (!customerRepository.existsById(id)) {
             throw new ResourceNotFoundException("Customer not found: " + id);
         }
         customerRepository.deleteById(id);
     }
 
-    public Customer addBonuses(UUID id, int amount) {
-        Customer customer = getById(id);
+    public Customer addBonuses(UUID id, int amount, CustomUserDetails currentUser) {
+        // Check ownership
+        if (!isOwnResource(id, currentUser) && !isAdmin(currentUser)) {
+            throw new ResourceNotFoundException("Customer not found: " + id);
+        }
+
+        Customer customer = getById(id, currentUser); // This will double-check ownership
         customer.setBonuses(customer.getBonuses() + amount);
         return customerRepository.save(customer);
     }
 
+    /**
+     * Check if the requested resource ID matches the current user's ID.
+     */
+    private boolean isOwnResource(UUID resourceId, CustomUserDetails currentUser) {
+        try {
+            UUID userId = UUID.fromString(currentUser.getId());
+            return userId.equals(resourceId);
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Check if the current user has admin role.
+     * In a real system, you might have more sophisticated role checking.
+     */
+    private boolean isAdmin(CustomUserDetails currentUser) {
+        // Check for admin roles - system_admin_role or restaurant_admin_role might have broader access
+        // For customer data access, we'll consider system_admin_role as having full access
+        return "system_admin_role".equals(currentUser.getRole());
+    }
 }

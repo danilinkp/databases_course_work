@@ -6,6 +6,8 @@ import org.hibernate.annotations.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Getter
@@ -26,10 +28,14 @@ public class Dish {
     @JoinColumn(name = "restaurant_id", nullable = false)
     private Restaurant restaurant;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @OnDelete(action = OnDeleteAction.SET_NULL)
-    @JoinColumn(name = "category_id", nullable = false)
-    private DishCategory category;
+    @ManyToMany
+    @JoinTable(
+        name = "dish_category_mapping",
+        joinColumns = @JoinColumn(name = "dish_id"),
+        inverseJoinColumns = @JoinColumn(name = "category_id")
+    )
+    @Builder.Default
+    private Set<DishCategory> categories = new HashSet<>();
 
     @Column(name = "name", nullable = false, length = 150)
     private String name;

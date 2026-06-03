@@ -2,6 +2,8 @@ package com.example.deliveryservice.repository;
 
 import com.example.deliveryservice.entity.Review;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -15,5 +17,6 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
 
     Optional<Review> findByOrderId(UUID uuid);
 
-    List<Review> findByRestaurantId(UUID restaurantId);
+    @Query("SELECT r FROM Review r JOIN r.order o WHERE o.restaurant.id = :restaurantId")
+    List<Review> findByRestaurantId(@Param("restaurantId") UUID restaurantId);
 }

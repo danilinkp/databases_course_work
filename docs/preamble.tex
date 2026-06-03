@@ -39,6 +39,7 @@
 \usepackage{xurl}
 \usepackage[table]{xcolor}
 \usepackage{xparse}
+\usepackage{amssymb}
 
 % Настройка полей
 % ============================
@@ -126,20 +127,26 @@
 	basicstyle=\footnotesize\ttfamily\linespread{0.8},
 	breakatwhitespace=true,	
 	breaklines=true,
-	captionpos=b,
+	captionpos=t,
 	commentstyle=\color{green!50!black},
 	escapeinside={\#*}{*)},	
 	frame=single,
 	inputencoding=utf8,
 	keywordstyle=\color{blue},
 	language=C,
-	numbers=left,
+	numbers=none,
 	numbersep=5pt,
 	numbersep=5pt,
 	numberstyle=\tiny,
 	showstringspaces=false,
 	stringstyle=\color{red!90!black}, 
 	tabsize=4,
+}
+\DeclareCaptionFormat{listing}{\raggedright#1#2#3\par}
+\captionsetup[lstlisting]{
+    format=listing,
+    singlelinecheck=false,
+    labelsep=endash,
 }
 \lstset{
 	morekeywords={size_t, likely}
@@ -229,7 +236,7 @@
 	labelsep=endash,
 	singlelinecheck=off
 }
-% \captionsetup[lstlisting]{
+% \captionsetup[listing]{
 % 	name={Листинг},
 % 	justification=centering,
 % 	labelsep=endash,
@@ -281,57 +288,101 @@
 % Центрирование в таблице, растянутой по ширине страницы
 \newcolumntype{L}{>{\raggedright\arraybackslash}X}
 \newcolumntype{C}{>{\centering\arraybackslash}X}
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}
 
 % Приложения
 \newcounter{appsection}
 \renewcommand{\theappsection}{\Asbuk{appsection}}
 
 \newcommand{\appsection}{
-	\newpage
-	\stepcounter{appsection}
-	\def\appname{ПРИЛОЖЕНИЕ~\theappsection}
-	\phantomsection
-	\section*{\appname}
-	\addcontentsline{toc}{section}{\appname}
+    \newpage
+    \stepcounter{appsection}
+    \def\appname{ПРИЛОЖЕНИЕ~\theappsection}
+    \phantomsection
+    \section*{\appname}
+    \addcontentsline{toc}{section}{\appname}
 
-	\renewcommand{\thefigure}{\theappsection.\arabic{figure}}
-	\renewcommand{\thetable}{\theappsection.\arabic{table}}
-	\renewcommand{\thelstlisting}{\theappsection.\arabic{lstlisting}}
-	\renewcommand{\theequation}{\theappsection.\arabic{equation}}
+    \renewcommand{\thefigure}{\theappsection.\arabic{figure}}
+    \renewcommand{\thetable}{\theappsection.\arabic{table}}
+    
+    % Вот эта строка теперь будет автоматически делать листинги вида А.1, Б.1
+    \renewcommand{\thelstlisting}{\theappsection.\arabic{lstlisting}} 
+    \renewcommand{\theequation}{\theappsection.\arabic{equation}}
 
-	\setcounter{figure}{0}
-	\setcounter{table}{0}
-	\setcounter{lstlisting}{0}
-	\setcounter{equation}{0}
-	\setcounter{section}{0}
-	\setcounter{subsection}{0}
-	\setcounter{subsubsection}{0}
+    \setcounter{figure}{0}
+    \setcounter{table}{0}
+    \setcounter{lstlisting}{0} % Сброс счетчика листингов для нового приложения
+    \setcounter{equation}{0}
+    \setcounter{section}{0}
+    \setcounter{subsection}{0}
+    \setcounter{subsubsection}{0}
 }
+
+% \newcommand{\appsection}{
+% 	\newpage
+% 	\stepcounter{appsection}
+% 	\def\appname{ПРИЛОЖЕНИЕ~\theappsection}
+% 	\phantomsection
+% 	\section*{\appname}
+% 	\addcontentsline{toc}{section}{\appname}
+
+% 	\renewcommand{\thefigure}{\theappsection.\arabic{figure}}
+% 	\renewcommand{\thetable}{\theappsection.\arabic{table}}
+% 	\renewcommand{\thelstlisting}{\theappsection.\arabic{lstlisting}}
+% 	\renewcommand{\theequation}{\theappsection.\arabic{equation}}
+
+% 	\setcounter{figure}{0}
+% 	\setcounter{table}{0}
+% 	\setcounter{lstlisting}{0}
+% 	\setcounter{equation}{0}
+% 	\setcounter{section}{0}
+% 	\setcounter{subsection}{0}
+% 	\setcounter{subsubsection}{0}
+% }
 
 % Сохранение ширины таблицы после переноса, для ltablex
 % \keepXColumns
 
 % Листинги с автопереносом
-\tcbuselibrary{listings, breakable, skins}
-\newtcblisting[use counter=lstlisting]{listing}[3][]{
-	boxrule=0.5pt,
-	breakable,
-	colback=white,
-	colbacktitle=white,
-	colframe=black,
-	fonttitle=\color{black},
-	listing only,
-	listing options={
-		language=#3,
-		frame=none,
-		xleftmargin=0pt,
-		title={#1}
-	},
-	sharp corners,
-	title={Листинг~\thetcbcounter~--~#1},
-	title after break={Листинг~\thetcbcounter\ (продолжение)},
-	label={#2},
+% \tcbuselibrary{listings, breakable, skins, fitting, hooks}
+
+\tcbuselibrary{listings, breakable}
+\newtcblisting{sqlblock}[1]{
+  breakable,
+  title=#1,
+  title after break=\textit{#1 (продолжение)},
+  listing options={
+    language=SQL,
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    breakatwhitespace=true,
+    keywordstyle=\color{blue}\bfseries,
+    commentstyle=\color{gray}\itshape,
+    stringstyle=\color{green!60!black}
+  },
+  colback=gray!5, colframe=gray!75!black, arc=2mm, boxrule=0.5pt,
+  listing only,
+  fonttitle=\bfseries
 }
+% \newtcblisting[use counter=lstlisting]{listing}[3][]{
+%     boxrule=0.5pt,
+%     breakable,
+%     colback=white,
+%     colframe=black,
+%     listing only,
+%     listing options={
+%         language=#3,
+%         frame=none,
+%         xleftmargin=0pt,
+%     },
+%     sharp corners,
+%     after={
+%         \par\noindent\centering\small
+%         Листинг~\thetcbcounter~--~#1
+%         \par\bigskip
+%     },
+%     label={#2},
+% }
 
 % Листинг из файла
 \newtcbinputlisting[use counter=lstlisting]{\flisting}[4][]{
@@ -404,4 +455,8 @@
 \newcommand{\definition}[2]
 {
 	\item \noindent #1 --- #2
+}
+
+\AtBeginDocument{
+    \counterwithin{lstlisting}{section}
 }

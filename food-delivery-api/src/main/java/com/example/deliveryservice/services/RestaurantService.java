@@ -10,6 +10,8 @@ import com.example.deliveryservice.exceptions.ResourceNotFoundException;
 import com.example.deliveryservice.repository.DeliveryZoneRepository;
 import com.example.deliveryservice.repository.RestaurantRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,22 +51,26 @@ public class RestaurantService {
         return restaurantRepository.save(restaurant);
     }
 
+    @Cacheable(value = "restaurants", key = "#id")
     @Transactional(readOnly = true)
     public Restaurant getById(UUID id) {
         return restaurantRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found: " + id));
     }
 
+    @Cacheable(value = "restaurants", key = "'active'")
     @Transactional(readOnly = true)
     public List<Restaurant> getActive() {
         return restaurantRepository.findByIsActiveTrue();
     }
 
+    @Cacheable(value = "restaurants", key = "'postal:' + #postalCode")
     @Transactional(readOnly = true)
     public List<Restaurant> getByPostalCode(String postalCode) {
         return restaurantRepository.findByPostalCode(postalCode);
     }
 
+    @CacheEvict(value = "restaurants", allEntries = true)
     public Restaurant update(UUID id, UpdateRestaurantCommand command) {
         Restaurant restaurant = getById(id);
 
@@ -92,12 +98,14 @@ public class RestaurantService {
         return restaurantRepository.save(restaurant);
     }
 
+    @CacheEvict(value = "restaurants", allEntries = true)
     public void deactivate(UUID id) {
         Restaurant restaurant = getById(id);
         restaurant.setIsActive(false);
         restaurantRepository.save(restaurant);
     }
 
+    @CacheEvict(value = "restaurants", allEntries = true)
     public DeliveryZone addDeliveryZone(UUID restaurantId, CreateDeliveryZoneCommand command) {
         Restaurant restaurant = getById(restaurantId);
 

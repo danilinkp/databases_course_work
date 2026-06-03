@@ -14,8 +14,7 @@ import java.util.UUID;
 @Repository
 public interface RestaurantRepository extends JpaRepository<Restaurant, UUID> {
 
-    @Query("SELECT DISTINCT r FROM restaurants r JOIN delivery_zones dz ON dz.restaurant = r " +
-            "WHERE dz.postal_code = :postalCode AND r.is_active = true")
+    @Query("SELECT DISTINCT r FROM DeliveryZone dz JOIN dz.restaurant r WHERE dz.postalCode = :postalCode AND r.isActive = true")
     List<Restaurant> findByPostalCode(@Param("postalCode") String postalCode);
 
     List<Restaurant> findByIsActiveTrue();

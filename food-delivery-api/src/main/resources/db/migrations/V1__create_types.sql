@@ -32,4 +32,9 @@ CREATE TYPE vehicle_type AS ENUM (
     'walking'
     );
 
+CREATE TYPE admin_role AS ENUM (
+    'system_admin',
+    'restaurant_admin'
+);
+
 COMMIT;

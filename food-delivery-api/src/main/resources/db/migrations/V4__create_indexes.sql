@@ -28,7 +28,6 @@ CREATE INDEX IF NOT EXISTS idx_dish_categories_display ON dish_categories(displa
 
 -- dishes
 CREATE INDEX IF NOT EXISTS idx_dishes_restaurant ON dishes(restaurant_id);
-CREATE INDEX IF NOT EXISTS idx_dishes_category ON dishes(category_id);
 CREATE INDEX IF NOT EXISTS idx_dishes_available ON dishes(restaurant_id, is_available)
     WHERE is_available = true;
 CREATE INDEX IF NOT EXISTS idx_dishes_price ON dishes(price);

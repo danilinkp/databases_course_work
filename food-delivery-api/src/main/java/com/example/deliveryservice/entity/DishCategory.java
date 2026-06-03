@@ -3,7 +3,10 @@ package com.example.deliveryservice.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Getter
@@ -28,6 +31,10 @@ public class DishCategory {
     @Column(name = "display_order")
     @Builder.Default
     private Integer displayOrder = 0;
+
+    @ManyToMany(mappedBy = "categories")
+    @Builder.Default
+    private Set<Dish> dishes = new HashSet<>();
 
     @CreationTimestamp
     @Column(name = "created_at")

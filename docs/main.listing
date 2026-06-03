@@ -1,0 +1,12 @@
+\label{lst:alter_customer_addresses}
+ALTER TABLE customer_addresses
+    ADD CONSTRAINT add_customer_addresses_primary_key PRIMARY KEY (address_id),
+    ALTER COLUMN address_id SET DEFAULT gen_random_uuid(),
+    ALTER COLUMN address_id SET NOT NULL,
+    ADD CONSTRAINT address_customer_id_fkey FOREIGN KEY (customer_id) REFERENCES customers (customer_ID) ON DELETE CASCADE,
+    ALTER COLUMN customer_id SET NOT NULL,
+    ALTER COLUMN city SET NOT NULL,
+    ALTER COLUMN street SET NOT NULL,
+    ALTER COLUMN house SET NOT NULL,
+    ALTER COLUMN is_default SET DEFAULT false,
+    ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP;

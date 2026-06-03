@@ -40,23 +40,23 @@ CREATE TABLE IF NOT EXISTS customer_addresses
 
 CREATE TABLE IF NOT EXISTS couriers
 (
-    courier_id     UUID,
+    courier_id    UUID,
 
-    full_name      VARCHAR(75),
-    phone          VARCHAR(20),
-    email          VARCHAR(255),
-    password_hash  VARCHAR(255),
-    employee_date  DATE,
+    full_name     VARCHAR(75),
+    phone         VARCHAR(20),
+    email         VARCHAR(255),
+    password_hash VARCHAR(255),
+    employee_date DATE,
 
-    area_of_work   VARCHAR(100),
-    vehicle_type   vehicle_type,
-    rating         DECIMAL(3, 2),
+    area_of_work  VARCHAR(100),
+    vehicle_type  vehicle_type,
+    rating        DECIMAL(3, 2),
 
-    is_available   BOOLEAN,
-    is_active      BOOLEAN,
+    is_available  BOOLEAN,
+    is_active     BOOLEAN,
 
-    created_at     TIMESTAMP,
-    updated_at     TIMESTAMP
+    created_at    TIMESTAMP,
+    updated_at    TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS restaurants
@@ -66,7 +66,6 @@ CREATE TABLE IF NOT EXISTS restaurants
     name          VARCHAR(75),
     cuisine_type  VARCHAR(25),
     rating        DECIMAL(4, 2),
-    review_count  INTEGER,
 
     address       TEXT,
     phone         VARCHAR(20),
@@ -86,20 +85,21 @@ CREATE TABLE IF NOT EXISTS restaurants
 
 CREATE TABLE IF NOT EXISTS delivery_zones
 (
-    zone_id           UUID,
+    zone_id             UUID,
 
-    restaurant_id     UUID,
+    restaurant_id       UUID,
 
-    zone_name         VARCHAR,
-    postal_code       VARCHAR,
-    delivery_fee      DECIMAL(10, 2),
-    near_threshold    DECIMAL(10, 2),
-    far_threshold     DECIMAL(10, 2),
-    fee_per_km        DECIMAL(10, 2),
-    peak_surcharge    DECIMAL(10, 2),
-    weekend_surcharge DECIMAL(10, 2),
-    min_order_amount  DECIMAL(10, 2),
-    delivery_time     INTEGER
+    zone_name           VARCHAR,
+    postal_code         VARCHAR,
+    delivery_fee        DECIMAL(10, 2),
+    near_threshold      DECIMAL(10, 2),
+    far_threshold       DECIMAL(10, 2),
+    far_zone_multiplier DECIMAL(10, 2),
+    fee_per_km          DECIMAL(10, 2),
+    peak_surcharge      DECIMAL(10, 2),
+    weekend_surcharge   DECIMAL(10, 2),
+    min_order_amount    DECIMAL(10, 2),
+    delivery_time       INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS dish_categories
@@ -116,53 +116,54 @@ CREATE TABLE IF NOT EXISTS dish_categories
 CREATE TABLE IF NOT EXISTS dishes
 (
     dish_id          UUID,
-
     restaurant_id    UUID,
-    category_id      UUID,
-
     name             VARCHAR(150),
     description      TEXT,
     price            DECIMAL(10, 2),
-
     image_url        TEXT,
     is_available     BOOLEAN,
     is_spicy         BOOLEAN,
     preparation_time INTEGER,
     calories         INTEGER,
     weight_grams     INTEGER,
-
     created_at       TIMESTAMP,
     updated_at       TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS dish_category_mapping
+(
+    dish_id     UUID NOT NULL,
+    category_id UUID NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS orders
 (
-    order_id         UUID,
-    order_number     VARCHAR(20),
+    order_id           UUID,
+    order_number       VARCHAR(20),
 
-    customer_id      UUID,
-    restaurant_id    UUID,
-    courier_id       UUID,
+    customer_id        UUID,
+    restaurant_id      UUID,
+    courier_id         UUID,
 
-    customer_name    VARCHAR(150),
-    customer_phone   VARCHAR(20),
-    restaurant_name  VARCHAR(150),
-    delivery_address TEXT,
-    delivery_latitude DECIMAL(12, 8),
+    customer_name      VARCHAR(150),
+    customer_phone     VARCHAR(20),
+    restaurant_name    VARCHAR(150),
+    delivery_address   TEXT,
+    delivery_latitude  DECIMAL(12, 8),
     delivery_longitude DECIMAL(12, 8),
 
-    subtotal         DECIMAL(10, 2),
-    delivery_fee     DECIMAL(10, 2),
-    discount         DECIMAL(10, 2),
-    total_amount     DECIMAL(10, 2),
+    subtotal           DECIMAL(10, 2),
+    delivery_fee       DECIMAL(10, 2),
+    discount           DECIMAL(10, 2),
+    total_amount       DECIMAL(10, 2),
 
-    status           order_status,
+    status             order_status,
 
-    created_at       TIMESTAMP,
-    confirmed_at     TIMESTAMP,
-    delivered_at     TIMESTAMP,
-    cancelled_at     TIMESTAMP,
-    updated_at       TIMESTAMP
+    created_at         TIMESTAMP,
+    confirmed_at       TIMESTAMP,
+    delivered_at       TIMESTAMP,
+    cancelled_at       TIMESTAMP,
+    updated_at         TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS order_items
@@ -171,7 +172,6 @@ CREATE TABLE IF NOT EXISTS order_items
     order_id         UUID,
     dish_id          UUID,
 
-    dish_name        VARCHAR(150),
     unit_price       DECIMAL(10, 2),
     quantity         INTEGER,
 
@@ -212,6 +212,24 @@ CREATE TABLE IF NOT EXISTS reviews
 
     created_at        TIMESTAMP,
     updated_at        TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS admins
+(
+    admin_id      UUID,
+    email         VARCHAR(255),
+    password_hash VARCHAR(255),
+    role          admin_role,
+    is_active     BOOLEAN,
+    created_at    TIMESTAMP,
+    updated_at    TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS admin_restaurants
+(
+    admin_id      UUID NOT NULL,
+    restaurant_id UUID NOT NULL,
+    PRIMARY KEY (admin_id, restaurant_id)
 );
 
 COMMIT;

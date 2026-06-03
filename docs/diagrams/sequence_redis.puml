@@ -1,0 +1,37 @@
+@startuml
+skinparam style strictuml
+
+actor "Клиент" as User #white
+participant "Приложение" as App #white
+database "In-Memory СУБД" as Redis #white
+database "РСУБД" as Postgres #white
+
+User -> App : Запрос данных
+activate App
+
+App -> Redis : Проверка наличия кэша (get)
+deactivate App
+activate Redis
+Redis --> App : Результат запроса (данные или null)
+deactivate Redis
+activate App
+opt Данные в кэше не найдены (null)
+    App -> Postgres : Запрос к основной БД (SELECT)
+    deactivate App
+    activate Postgres
+    Postgres --> App : Данные из таблиц
+    deactivate Postgres
+    activate App
+    
+    App -> Redis : Сохранение данных в кэш (set с TTL)
+    deactivate App
+    activate Redis
+    Redis --> App : OK
+    deactivate Redis
+    activate App
+end
+
+App --> User : Ответ с данными
+deactivate App
+
+@enduml

@@ -12,7 +12,7 @@ public interface AddressRepository extends JpaRepository<CustomerAddress, UUID> 
     List<CustomerAddress> findByCustomerId(UUID customerId);
 
     @Modifying
-    @Query("UPDATE customer_addresses a SET a.is_default = false WHERE a.customer_id = :customerId")
+    @Query("UPDATE CustomerAddress a SET a.isDefault = false WHERE a.customer.id = :customerId")
     void clearDefaultForCustomer(UUID customerId);
 
 }

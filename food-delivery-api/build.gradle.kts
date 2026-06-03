@@ -40,6 +40,14 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-validation-test")
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+    implementation("io.jsonwebtoken:jjwt-api:0.12.6")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
+    
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5")
 }
 
 tasks.withType<Test> {

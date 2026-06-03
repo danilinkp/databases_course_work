@@ -1,0 +1,9 @@
+query,rows,with_ms,without_ms
+idx_orders_customer_status,10000,0.018,0.052
+idx_orders_customer_status,25000,0.03,0.13
+idx_orders_customer_status,50000,0.055,0.294
+idx_orders_customer_status,100000,0.106,0.569
+idx_orders_customer_status,200000,0.211,1.123
+idx_orders_customer_status,300000,0.429,1.724
+idx_orders_customer_status,400000,0.93,2.774
+idx_orders_customer_status,500000,1.357,3.535

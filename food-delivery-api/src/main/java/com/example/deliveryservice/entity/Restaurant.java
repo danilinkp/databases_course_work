@@ -2,12 +2,15 @@ package com.example.deliveryservice.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.NonFinal;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Getter
@@ -32,10 +35,6 @@ public class Restaurant {
     @Column(name = "rating", precision = 4, scale = 2)
     @Builder.Default
     private BigDecimal rating = BigDecimal.ZERO;
-
-    @Column(name = "review_count")
-    @Builder.Default
-    private Integer reviewCount = 0;
 
     @Column(name = "address", nullable = false, length = Integer.MAX_VALUE)
     private String address;
@@ -69,4 +68,9 @@ public class Restaurant {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private Instant updatedAt;
+
+    @ManyToMany(mappedBy = "restaurants")
+    @Builder.Default
+    @NonFinal
+    private Set<Admin> admins = new HashSet<>();
 }

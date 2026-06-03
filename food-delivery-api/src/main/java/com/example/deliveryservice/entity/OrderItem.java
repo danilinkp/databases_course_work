@@ -33,9 +33,6 @@ public class OrderItem {
     @JoinColumn(name = "dish_id", nullable = false)
     private Dish dish;
 
-    @Column(name = "dish_name", nullable = false, length = 150)
-    private String dishName;
-
     @Column(name = "unit_price", nullable = false, precision = 10, scale = 2)
     private BigDecimal unitPrice;
 
