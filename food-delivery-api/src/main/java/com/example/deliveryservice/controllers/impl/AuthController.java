@@ -47,7 +47,7 @@ public class AuthController {
     @PostMapping("/login")
     @Operation(
         summary = "Вход в систему",
-        description = "Аутентификация пользователя по email и паролю. Возвращает JWT токен доступа, роль пользователя и ID. Используется для получения доступа к защищённым endpoints."
+        description = "Аутентификация пользователя по email и паролю. Возвращает JWT токен доступа, роль пользователя и ID. Используется для получения доступа к защищённым эндпоинтам."
     )
     public ResponseEntity<?> login(@RequestBody @Valid LoginCommand command) {
         try {
@@ -79,7 +79,7 @@ public class AuthController {
     @PostMapping("/logout")
     @Operation(
         summary = "Выход из системы",
-        description = "Добавление JWT токена в blacklist (Redis) для аннулирования сессии. Требует заголовок Authorization с Bearer токеном."
+        description = "Добавление JWT токена в чёрный список (Redis) для аннулирования сессии. Требует заголовок Authorization с Bearer токеном."
     )
     public ResponseEntity<?> logout(@RequestHeader("Authorization") String authorizationHeader) {
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
@@ -114,7 +114,7 @@ public class AuthController {
     @PostMapping("/register-system-admin")
     @Operation(
         summary = "Регистрация системного администратора",
-        description = "Создание первого системного администратора для initial setup системы. Должен вызываться один раз при развертывании."
+        description = "Создание первого системного администратора для первоначальной настройки системы. Должен вызываться один раз при развёртывании."
     )
     @ResponseStatus(HttpStatus.CREATED)
     public AdminResponse registerSystemAdmin(@RequestBody @Valid AdminRegisterCommand command) {

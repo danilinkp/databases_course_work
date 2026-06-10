@@ -12,9 +12,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-/**
- * Custom UserDetailsService that loads user details from Customer, Courier, or Admin table.
- */
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
 

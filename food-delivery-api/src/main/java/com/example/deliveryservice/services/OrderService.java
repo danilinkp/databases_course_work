@@ -4,6 +4,7 @@ package com.example.deliveryservice.services;
 import com.example.deliveryservice.dto.command.CreateOrderCommand;
 import com.example.deliveryservice.dto.command.CreateOrderItemCommand;
 import com.example.deliveryservice.dto.command.OrderTotal;
+import com.example.deliveryservice.dto.response.OrderItemResponse;
 import com.example.deliveryservice.entity.*;
 import com.example.deliveryservice.exceptions.ResourceNotFoundException;
 import com.example.deliveryservice.repository.*;
@@ -14,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -31,11 +31,11 @@ public class OrderService {
     private final CourierRepository courierRepository;
     private final CustomerRepository customerRepository;
     private final RestaurantRepository restaurantRepository;
+    private final AdminRepository adminRepository;
     private final PricingService pricingService;
 
     @Transactional
     public Order create(UUID customerId, CreateOrderCommand command, CustomUserDetails currentUser) {
-        // Check if the current user is creating an order for themselves or is an admin
         if (!isOwnCustomer(customerId, currentUser) && !isAdmin(currentUser)) {
             throw new ResourceNotFoundException("Customer not found: " + customerId);
         }
@@ -98,11 +98,17 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
+    public List<OrderItemResponse> getItems(UUID orderId) {
+        return orderItemRepository.findByOrderId(orderId).stream()
+                .map(OrderItemResponse::fromEntity)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public Order getById(UUID id, CustomUserDetails currentUser) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found: " + id));
 
-        // Check if the current user is the customer of this order, or a courier assigned to this order, or restaurant owner, or admin
         if (!isOrderAccessible(id, currentUser)) {
             throw new ResourceNotFoundException("Order not found: " + id);
         }
@@ -112,7 +118,6 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public List<Order> getByCustomerId(UUID customerId, CustomUserDetails currentUser) {
-        // Check if the current user is requesting their own orders or is an admin
         if (!isOwnCustomer(customerId, currentUser) && !isAdmin(currentUser)) {
             throw new ResourceNotFoundException("Customer not found: " + customerId);
         }
@@ -125,7 +130,6 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public List<Order> getByRestaurantId(UUID restaurantId, CustomUserDetails currentUser) {
-        // Check if the current user owns this restaurant or is an admin
         if (!isOwnRestaurant(restaurantId, currentUser) && !isAdmin(currentUser)) {
             throw new ResourceNotFoundException("Restaurant not found: " + restaurantId);
         }
@@ -144,7 +148,7 @@ public class OrderService {
         }
 
         order.setStatus(OrderStatus.confirmed);
-        order.setConfirmedAt(Instant.from(LocalDateTime.now()));
+        order.setConfirmedAt(Instant.now());
         return orderRepository.save(order);
     }
 
@@ -201,7 +205,7 @@ public class OrderService {
         }
 
         order.setStatus(OrderStatus.delivered);
-        order.setDeliveredAt(Instant.from(LocalDateTime.now()));
+        order.setDeliveredAt(Instant.now());
 
         Courier courier = order.getCourier();
         if (courier != null) {
@@ -221,7 +225,7 @@ public class OrderService {
         }
 
         order.setStatus(OrderStatus.cancelled);
-        order.setCancelledAt(Instant.from(LocalDateTime.now()));
+        order.setCancelledAt(Instant.now());
 
         Courier courier = order.getCourier();
         if (courier != null) {
@@ -236,9 +240,6 @@ public class OrderService {
         return "ORD-" + System.currentTimeMillis();
     }
 
-    /**
-     * Check if the requested customer ID matches the current user's ID.
-     */
     private boolean isOwnCustomer(UUID customerId, CustomUserDetails currentUser) {
         try {
             UUID userId = UUID.fromString(currentUser.getId());
@@ -248,31 +249,17 @@ public class OrderService {
         }
     }
 
-    /**
-     * Check if the requested restaurant ID matches the current user's restaurant.
-     * This assumes that restaurant admins have a way to know which restaurant they own.
-     * For simplicity, we'll check if the user has restaurant_admin_role and then
-     * we might need to check which restaurant they own. But since we don't have
-     * a direct link from user to restaurant in the auth system, we'll rely on
-     * the fact that restaurant admins should only access their own restaurant
-     * through other means (like having restaurant_id in their token or profile).
-     * For now, we'll allow any restaurant_admin to access any restaurant (not ideal but simple).
-     * A better approach would be to add restaurant_id to the user details when a restaurant admin logs in.
-     */
     private boolean isOwnRestaurant(UUID restaurantId, CustomUserDetails currentUser) {
-        // For now, we'll just check if the user is a restaurant admin and allow access
-        // In a production system, you'd want to check which specific restaurant they own
-        return "restaurant_admin_role".equals(currentUser.getRole());
+        if (!"restaurant_admin_role".equals(currentUser.getRole())) {
+            return false;
+        }
+        try {
+            return adminRepository.ownsRestaurant(UUID.fromString(currentUser.getId()), restaurantId);
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 
-    /**
-     * Check if the current user has access to an order.
-     * Access is granted if:
-     * 1. The user is the customer who placed the order
-     * 2. The user is the courier assigned to the order
-     * 3. The user is the restaurant owner (restaurant_admin_role)
-     * 4. The user is a system admin
-     */
     private boolean isOrderAccessible(UUID orderId, CustomUserDetails currentUser) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found: " + orderId));
@@ -281,37 +268,24 @@ public class OrderService {
             UUID userId = UUID.fromString(currentUser.getId());
             String userRole = currentUser.getRole();
 
-            // Check if user is the customer
             if ("customer_role".equals(userRole) && order.getCustomer().getId().equals(userId)) {
                 return true;
             }
 
-            // Check if user is the assigned courier
             if ("courier_role".equals(userRole) && order.getCourier() != null && order.getCourier().getId().equals(userId)) {
                 return true;
             }
 
-            // Check if user is the restaurant owner (simplified)
-            if ("restaurant_admin_role".equals(userRole) && order.getRestaurant().getId().equals(userId)) {
-                // This assumes the userId in the token is actually the restaurant ID for restaurant admins
-                // This is not ideal - we'd need a better way to link restaurant admins to their restaurants
-                return true;
+            if ("restaurant_admin_role".equals(userRole)) {
+                return adminRepository.ownsRestaurant(userId, order.getRestaurant().getId());
             }
 
-            // Check if user is system admin
-            if ("system_admin_role".equals(userRole)) {
-                return true;
-            }
-
-            return false;
+            return "system_admin_role".equals(userRole);
         } catch (IllegalArgumentException e) {
             return false;
         }
     }
 
-    /**
-     * Check if the current user has admin role.
-     */
     private boolean isAdmin(CustomUserDetails currentUser) {
         return "system_admin_role".equals(currentUser.getRole());
     }

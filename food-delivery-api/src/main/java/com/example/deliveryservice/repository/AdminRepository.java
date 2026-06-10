@@ -19,5 +19,8 @@ public interface AdminRepository extends JpaRepository<Admin, UUID> {
     @Query("SELECT DISTINCT a FROM Admin a JOIN a.restaurants r WHERE r.id = :restaurantId")
     List<Admin> findByRestaurantsContainingId(@Param("restaurantId") UUID restaurantId);
 
+    @Query("SELECT COUNT(a) > 0 FROM Admin a JOIN a.restaurants r WHERE a.id = :adminId AND r.id = :restaurantId")
+    boolean ownsRestaurant(@Param("adminId") UUID adminId, @Param("restaurantId") UUID restaurantId);
+
     List<Admin> findByRole(AdminRole role);
 }

@@ -24,7 +24,8 @@ public record OrderResponse(
         Instant createdAt,
         Instant confirmedAt,
         Instant deliveredAt,
-        Instant cancelledAt
+        Instant cancelledAt,
+        List<OrderItemResponse> items
 ) {
     public static OrderResponse fromEntity(Order order, List<OrderItemResponse> items) {
         if (order == null) return null;
@@ -46,7 +47,8 @@ public record OrderResponse(
                 order.getCreatedAt(),
                 order.getConfirmedAt(),
                 order.getDeliveredAt(),
-                order.getCancelledAt()
+                order.getCancelledAt(),
+                items
         );
     }
 }

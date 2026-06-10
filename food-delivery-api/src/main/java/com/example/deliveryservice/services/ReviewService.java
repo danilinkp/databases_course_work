@@ -32,12 +32,10 @@ public class ReviewService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found: " + orderId));
 
-        // Verify the review belongs to a delivered order
         if (order.getStatus() != OrderStatus.delivered) {
             throw new IllegalStateException("Review can only be left for delivered orders");
         }
 
-        // Verify that the order belongs to the current customer
         Customer currentCustomer = customerRepository.findById(UUID.fromString(currentUser.getId()))
                 .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
         if (!order.getCustomer().getId().equals(currentCustomer.getId())) {
@@ -64,7 +62,6 @@ public class ReviewService {
         Review review = reviewRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Review not found for order: " + orderId));
 
-        // Verify access
         if (!verifyAccess(review, orderId, currentUser)) {
             throw new SecurityException("Access denied");
         }
@@ -91,12 +88,10 @@ public class ReviewService {
         String role = currentUser.getRole();
         UUID currentUserId = UUID.fromString(currentUser.getId());
 
-        // System admins can access any review
         if ("system_admin_role".equals(role)) {
             return true;
         }
 
-        // Customers can access their own reviews
         Order order = review.getOrder();
         if ("customer_role".equals(role) && order.getCustomer().getId().equals(currentUserId)) {
             return true;

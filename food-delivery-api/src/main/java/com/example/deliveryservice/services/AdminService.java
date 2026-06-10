@@ -53,7 +53,6 @@ public class AdminService {
                 .restaurants(new HashSet<>())
                 .build();
 
-        // Add restaurants if provided
         if (command.restaurantIds() != null && !command.restaurantIds().isEmpty()) {
             List<Restaurant> restaurants = restaurantRepository.findAllById(
                     command.restaurantIds().stream()
@@ -67,21 +66,15 @@ public class AdminService {
         return mapToResponse(saved);
     }
 
-    /**
-     * Registers a restaurant admin using an invitation token.
-     * The invitation token should be in format: RESTAURANT-{restaurantId}
-     */
     public AdminResponse registerRestaurantAdmin(RegisterRestaurantAdminCommand command) {
         if (adminRepository.existsByEmail(command.email())) {
             throw new ResourceAlreadyExistsException("Admin with email " + command.email() + " already exists");
         }
 
-        // Validate invitation token
         if (!validateInvitationToken(command.invitationToken(), command.restaurantId())) {
             throw new IllegalArgumentException("Invalid invitation token");
         }
 
-        // Verify restaurant exists
         Restaurant restaurant = restaurantRepository.findById(command.restaurantId())
                 .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found with id: " + command.restaurantId()));
 
@@ -103,6 +96,11 @@ public class AdminService {
         }
         String expectedToken = INVITATION_TOKEN_PREFIX + restaurantId.toString();
         return token.equals(expectedToken);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean ownsRestaurant(UUID adminId, UUID restaurantId) {
+        return adminRepository.ownsRestaurant(adminId, restaurantId);
     }
 
     public AdminResponse getAdminById(UUID id) {
@@ -148,7 +146,6 @@ public class AdminService {
         }
         admin.setRole(AdminRole.valueOf(command.role().replace(" ", "_").toLowerCase()));
 
-        // Update restaurant associations if provided
         if (command.restaurantIds() != null) {
             admin.getRestaurants().clear();
             if (!command.restaurantIds().isEmpty()) {

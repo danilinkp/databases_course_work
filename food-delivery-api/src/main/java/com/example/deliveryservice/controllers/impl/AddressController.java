@@ -33,13 +33,12 @@ public class AddressController {
     @PostMapping
     @Operation(
         summary = "Добавить адрес",
-        description = "Сохранение нового адреса доставки для клиента. Включает улицу, дом, квартира, подъезд, этаж, код домофона и комментарии курьеру."
+        description = "Сохранение нового адреса доставки для клиента. Включает регион, город, улицу, дом, квартиру, почтовый индекс, координаты и дополнительную информацию."
     )
     @ResponseStatus(HttpStatus.CREATED)
     public CustomerAddressResponse add(@PathVariable UUID customerId,
                                        @RequestBody @Valid AddAddressCommand command,
                                        @AuthenticationPrincipal CustomUserDetails currentUser) {
-        // Only the customer themselves or admins can add addresses
         if (!UUID.fromString(currentUser.getId()).equals(customerId)
                 && !"system_admin_role".equals(currentUser.getRole())) {
             throw new AccessDeniedException("Access denied");
@@ -56,7 +55,6 @@ public class AddressController {
     )
     public List<CustomerAddressResponse> getAll(@PathVariable UUID customerId,
                                                 @AuthenticationPrincipal CustomUserDetails currentUser) {
-        // Only the customer themselves or admins can view addresses
         if (!UUID.fromString(currentUser.getId()).equals(customerId)
                 && !"system_admin_role".equals(currentUser.getRole())) {
             throw new AccessDeniedException("Access denied");
@@ -74,7 +72,6 @@ public class AddressController {
     public CustomerAddressResponse getById(@PathVariable UUID customerId,
                                            @PathVariable UUID addressId,
                                            @AuthenticationPrincipal CustomUserDetails currentUser) {
-        // Only the customer themselves or admins can view addresses
         if (!UUID.fromString(currentUser.getId()).equals(customerId)
                 && !"system_admin_role".equals(currentUser.getRole())) {
             throw new AccessDeniedException("Access denied");
@@ -91,7 +88,6 @@ public class AddressController {
                                           @PathVariable UUID addressId,
                                           @RequestBody @Valid UpdateAddressCommand command,
                                           @AuthenticationPrincipal CustomUserDetails currentUser) {
-        // Only the customer themselves or admins can update addresses
         if (!UUID.fromString(currentUser.getId()).equals(customerId)
                 && !"system_admin_role".equals(currentUser.getRole())) {
             throw new AccessDeniedException("Access denied");
@@ -104,13 +100,12 @@ public class AddressController {
     @PatchMapping("/{addressId}/default")
     @Operation(
         summary = "Установить основной адрес",
-        description = "Назначение адреса основным для быстрой выбора при оформлении заказа. У перед этого основного адреса снимается этот статус."
+        description = "Назначение адреса основным для быстрого выбора при оформлении заказа. С предыдущего основного адреса этот статус снимается."
     )
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void setDefault(@PathVariable UUID customerId,
                            @PathVariable UUID addressId,
                            @AuthenticationPrincipal CustomUserDetails currentUser) {
-        // Only the customer themselves or admins can set default address
         if (!UUID.fromString(currentUser.getId()).equals(customerId)
                 && !"system_admin_role".equals(currentUser.getRole())) {
             throw new AccessDeniedException("Access denied");
@@ -127,7 +122,6 @@ public class AddressController {
     public void delete(@PathVariable UUID customerId,
                        @PathVariable UUID addressId,
                        @AuthenticationPrincipal CustomUserDetails currentUser) {
-        // Only the customer themselves or admins can delete addresses
         if (!UUID.fromString(currentUser.getId()).equals(customerId)
                 && !"system_admin_role".equals(currentUser.getRole())) {
             throw new AccessDeniedException("Access denied");

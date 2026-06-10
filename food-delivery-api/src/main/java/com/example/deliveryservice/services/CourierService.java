@@ -51,9 +51,8 @@ public class CourierService {
 
     @Transactional(readOnly = true)
     public Courier getById(UUID id, CustomUserDetails currentUser) {
-        // Check if the current user is requesting their own data or is an admin
         if (!isOwnResource(id, currentUser) && !isAdmin(currentUser)) {
-            throw new ResourceNotFoundException("Courier not found: " + id); // Return not found to avoid leaking existence info
+            throw new ResourceNotFoundException("Courier not found: " + id);
         }
 
         return courierRepository.findById(id)
@@ -62,12 +61,11 @@ public class CourierService {
 
     @Transactional
     public Courier update(UUID id, UpdateCourierCommand command, CustomUserDetails currentUser) {
-        // Check ownership
         if (!isOwnResource(id, currentUser) && !isAdmin(currentUser)) {
             throw new ResourceNotFoundException("Courier not found: " + id);
         }
 
-        Courier courier = getById(id, currentUser); // This will double-check ownership
+        Courier courier = getById(id, currentUser);
 
         if (command.fullName() != null) courier.setFullName(command.fullName());
         if (command.areaOfWork() != null) courier.setAreaOfWork(command.areaOfWork());
@@ -91,12 +89,11 @@ public class CourierService {
 
     @Transactional
     public void changePassword(UUID id, String oldPassword, String newPassword, CustomUserDetails currentUser) {
-        // Check ownership
         if (!isOwnResource(id, currentUser) && !isAdmin(currentUser)) {
             throw new ResourceNotFoundException("Courier not found: " + id);
         }
 
-        Courier courier = getById(id, currentUser); // This will double-check ownership
+        Courier courier = getById(id, currentUser);
 
         if (!passwordEncoder.matches(oldPassword, courier.getPasswordHash())) {
             throw new WrongPasswordException("Wrong password");
@@ -107,31 +104,26 @@ public class CourierService {
     }
 
     public Courier setAvailability(UUID id, boolean isAvailable, CustomUserDetails currentUser) {
-        // Check ownership
         if (!isOwnResource(id, currentUser) && !isAdmin(currentUser)) {
             throw new ResourceNotFoundException("Courier not found: " + id);
         }
 
-        Courier courier = getById(id, currentUser); // This will double-check ownership
+        Courier courier = getById(id, currentUser);
         courier.setIsAvailable(isAvailable);
         return courierRepository.save(courier);
     }
 
     public void deactivate(UUID id, CustomUserDetails currentUser) {
-        // Check ownership
         if (!isOwnResource(id, currentUser) && !isAdmin(currentUser)) {
             throw new ResourceNotFoundException("Courier not found: " + id);
         }
 
-        Courier courier = getById(id, currentUser); // This will double-check ownership
+        Courier courier = getById(id, currentUser);
         courier.setIsActive(false);
         courier.setIsAvailable(false);
         courierRepository.save(courier);
     }
 
-    /**
-     * Check if the requested resource ID matches the current user's ID.
-     */
     private boolean isOwnResource(UUID resourceId, CustomUserDetails currentUser) {
         try {
             UUID userId = UUID.fromString(currentUser.getId());
@@ -141,13 +133,7 @@ public class CourierService {
         }
     }
 
-    /**
-     * Check if the current user has admin role.
-     * For courier data, we'll consider system_admin_role as having full access.
-     * Restaurant admins might also have access to couriers in their area? But for simplicity, we'll stick to system admin.
-     */
     private boolean isAdmin(CustomUserDetails currentUser) {
-        // Check for admin roles - system_admin_role has full access
         return "system_admin_role".equals(currentUser.getRole());
     }
 }

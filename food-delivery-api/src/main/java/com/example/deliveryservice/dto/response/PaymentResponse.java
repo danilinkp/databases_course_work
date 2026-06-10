@@ -17,7 +17,8 @@ public record PaymentResponse(
         String errorMessage,
         Map<String, Object> metadata,
         Instant createdAt,
-        Instant processedAt
+        Instant processedAt,
+        Instant completedAt
 ) {
     public static PaymentResponse fromEntity(Payment payment) {
         if (payment == null) return null;
@@ -32,7 +33,8 @@ public record PaymentResponse(
                 payment.getErrorMessage(),
                 payment.getMetadata(),
                 payment.getCreatedAt(),
-                payment.getProcessedAt()
+                payment.getProcessedAt(),
+                payment.getCompletedAt()
         );
     }
 }

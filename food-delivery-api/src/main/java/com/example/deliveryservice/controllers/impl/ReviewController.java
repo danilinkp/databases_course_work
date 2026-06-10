@@ -33,13 +33,12 @@ public class ReviewController {
     @PostMapping("/order/{orderId}")
     @Operation(
         summary = "Создать отзыв",
-        description = "Оценка и отзыв о completed заказе. Клиент может поставить рейтинг (1-5 звезд) и написать комментарий. Отзыв влияет на рейтинг ресторана. Доступно только клиентам."
+        description = "Оценка и отзыв о завершённом заказе. Клиент может поставить рейтинг (1-5 звезд) и написать комментарий. Отзыв влияет на рейтинг ресторана. Доступно только клиентам."
     )
     @ResponseStatus(HttpStatus.CREATED)
     public ReviewResponse create(@PathVariable UUID orderId,
                                  @RequestBody @Valid CreateReviewCommand command,
                                  @AuthenticationPrincipal CustomUserDetails currentUser) {
-        // Only customers can create reviews
         if (!"customer_role".equals(currentUser.getRole())) {
             throw new AccessDeniedException("Only customers can create reviews");
         }
@@ -59,11 +58,10 @@ public class ReviewController {
     @GetMapping("/restaurant/{restaurantId}")
     @Operation(
         summary = "Получить отзывы ресторана",
-        description = "Возвращает все отзывы о ресторана с их рейтингами и комментариями. Используется для анализа качества обслуживания. Доступно администраторам ресторана и системным администраторам."
+        description = "Возвращает все отзывы о ресторане с их рейтингами и комментариями. Используется для анализа качества обслуживания. Доступно администраторам ресторана и системным администраторам."
     )
     public List<ReviewResponse> getByRestaurant(@PathVariable UUID restaurantId,
                                                 @AuthenticationPrincipal CustomUserDetails currentUser) {
-        // Only restaurant admins, system admins can view reviews for their restaurant
         if (!"restaurant_admin_role".equals(currentUser.getRole())
                 && !"system_admin_role".equals(currentUser.getRole())) {
             throw new AccessDeniedException("Access denied");

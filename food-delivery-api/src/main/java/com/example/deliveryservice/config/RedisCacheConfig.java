@@ -1,5 +1,7 @@
 package com.example.deliveryservice.config;
 
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
@@ -18,26 +20,29 @@ import java.time.Duration;
 @EnableCaching
 public class RedisCacheConfig {
 
+    private GenericJackson2JsonRedisSerializer jsonSerializer() {
+        return new GenericJackson2JsonRedisSerializer()
+                .configure(mapper -> {
+                    mapper.registerModule(new JavaTimeModule());
+                    mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+                });
+    }
+
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
-        RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofMinutes(30))
+        RedisCacheConfiguration base = RedisCacheConfiguration.defaultCacheConfig()
                 .serializeKeysWith(RedisSerializationContext.SerializationPair
                         .fromSerializer(new StringRedisSerializer()))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair
-                        .fromSerializer(new GenericJackson2JsonRedisSerializer()))
+                        .fromSerializer(jsonSerializer()))
                 .disableCachingNullValues();
 
         return RedisCacheManager.builder(connectionFactory)
-                .cacheDefaults(defaultConfig)
-                .withCacheConfiguration("restaurants", RedisCacheConfiguration.defaultCacheConfig()
-                        .entryTtl(Duration.ofMinutes(60)))
-                .withCacheConfiguration("dishes", RedisCacheConfiguration.defaultCacheConfig()
-                        .entryTtl(Duration.ofMinutes(30)))
-                .withCacheConfiguration("deliveryZones", RedisCacheConfiguration.defaultCacheConfig()
-                        .entryTtl(Duration.ofMinutes(120)))
-                .withCacheConfiguration("couriers", RedisCacheConfiguration.defaultCacheConfig()
-                        .entryTtl(Duration.ofMinutes(15)))
+                .cacheDefaults(base.entryTtl(Duration.ofMinutes(30)))
+                .withCacheConfiguration("restaurants", base.entryTtl(Duration.ofMinutes(60)))
+                .withCacheConfiguration("dishes", base.entryTtl(Duration.ofMinutes(30)))
+                .withCacheConfiguration("deliveryZones", base.entryTtl(Duration.ofMinutes(120)))
+                .withCacheConfiguration("couriers", base.entryTtl(Duration.ofMinutes(15)))
                 .build();
     }
 
@@ -46,9 +51,9 @@ public class RedisCacheConfig {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        template.setValueSerializer(jsonSerializer());
         template.setHashKeySerializer(new StringRedisSerializer());
-        template.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
+        template.setHashValueSerializer(jsonSerializer());
         template.afterPropertiesSet();
         return template;
     }

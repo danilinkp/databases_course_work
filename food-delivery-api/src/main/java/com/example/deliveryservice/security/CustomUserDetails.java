@@ -10,9 +10,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.Collections;
 
-/**
- * Custom UserDetails that can represent a Customer, Courier, or Admin.
- */
 public class CustomUserDetails implements UserDetails {
 
     private final String email;

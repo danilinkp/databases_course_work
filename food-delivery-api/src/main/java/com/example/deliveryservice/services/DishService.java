@@ -2,6 +2,7 @@ package com.example.deliveryservice.services;
 
 import com.example.deliveryservice.dto.command.CreateDishCommand;
 import com.example.deliveryservice.dto.command.UpdateDishCommand;
+import com.example.deliveryservice.dto.response.DishResponse;
 import com.example.deliveryservice.entity.Dish;
 import com.example.deliveryservice.entity.DishCategory;
 import com.example.deliveryservice.entity.Restaurant;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -54,43 +56,54 @@ public class DishService {
         return dishRepository.save(dish);
     }
 
-    @Cacheable(value = "dishes", key = "#id")
     @Transactional(readOnly = true)
-    public Dish getById(UUID id) {
+    public Dish getEntityById(UUID id) {
         return dishRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Dish not found: " + id));
     }
 
+    @Cacheable(value = "dishes", key = "#id")
+    @Transactional(readOnly = true)
+    public DishResponse getById(UUID id) {
+        return DishResponse.fromEntity(getEntityById(id));
+    }
+
     @Cacheable(value = "dishes", key = "'restaurant:' + #restaurantId")
     @Transactional(readOnly = true)
-    public List<Dish> getByRestaurantId(UUID restaurantId) {
+    public List<DishResponse> getByRestaurantId(UUID restaurantId) {
         if (!restaurantRepository.existsById(restaurantId)) {
             throw new ResourceNotFoundException("Restaurant not found: " + restaurantId);
         }
-        return dishRepository.findByRestaurantId(restaurantId);
+        return dishRepository.findByRestaurantId(restaurantId).stream()
+                .map(DishResponse::fromEntity)
+                .collect(Collectors.toList());
     }
 
     @Cacheable(value = "dishes", key = "'restaurant_avail:' + #restaurantId")
     @Transactional(readOnly = true)
-    public List<Dish> getAvailableByRestaurantId(UUID restaurantId) {
+    public List<DishResponse> getAvailableByRestaurantId(UUID restaurantId) {
         if (!restaurantRepository.existsById(restaurantId)) {
             throw new ResourceNotFoundException("Restaurant not found: " + restaurantId);
         }
-        return dishRepository.findByRestaurantIdAndIsAvailableTrue(restaurantId);
+        return dishRepository.findByRestaurantIdAndIsAvailableTrue(restaurantId).stream()
+                .map(DishResponse::fromEntity)
+                .collect(Collectors.toList());
     }
 
     @Cacheable(value = "dishes", key = "'category:' + #categoryId")
     @Transactional(readOnly = true)
-    public List<Dish> getByCategoryId(UUID categoryId) {
+    public List<DishResponse> getByCategoryId(UUID categoryId) {
         if (!dishCategoryRepository.existsById(categoryId)) {
             throw new ResourceNotFoundException("Category not found: " + categoryId);
         }
-        return dishRepository.findByCategoryId(categoryId);
+        return dishRepository.findByCategoryId(categoryId).stream()
+                .map(DishResponse::fromEntity)
+                .collect(Collectors.toList());
     }
 
     @CacheEvict(value = "dishes", allEntries = true)
     public Dish update(UUID id, UpdateDishCommand command) {
-        Dish dish = getById(id);
+        Dish dish = getEntityById(id);
 
         if (command.name() != null) dish.setName(command.name());
         if (command.description() != null) dish.setDescription(command.description());
@@ -106,7 +119,7 @@ public class DishService {
 
     @CacheEvict(value = "dishes", allEntries = true)
     public Dish setAvailability(UUID id, boolean isAvailable) {
-        Dish dish = getById(id);
+        Dish dish = getEntityById(id);
         dish.setIsAvailable(isAvailable);
         return dishRepository.save(dish);
     }

@@ -32,11 +32,14 @@ public class Payment {
     private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "payment_method", nullable = false)
     private PaymentMethod paymentMethod;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "status", nullable = false)
+    @Builder.Default
     private PaymentStatus paymentStatus = PaymentStatus.pending;
 
     @Column(name = "external_transaction_id")
@@ -56,11 +59,9 @@ public class Payment {
     @Column(name = "created_at")
     private Instant createdAt;
 
-    @UpdateTimestamp
     @Column(name = "processed_at")
     private Instant processedAt;
 
-    @UpdateTimestamp
     @Column(name = "completed_at")
     private Instant completedAt;
 }

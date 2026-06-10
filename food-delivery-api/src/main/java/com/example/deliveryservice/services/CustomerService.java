@@ -1,6 +1,5 @@
 package com.example.deliveryservice.services;
 
-import com.example.deliveryservice.config.SecurityConfig;
 import com.example.deliveryservice.dto.command.RegisterCustomerCommand;
 import com.example.deliveryservice.dto.command.UpdateCustomerCommand;
 import com.example.deliveryservice.entity.Customer;
@@ -48,9 +47,8 @@ public class CustomerService {
 
     @Transactional(readOnly = true)
     public Customer getById(UUID id, CustomUserDetails currentUser) {
-        // Check if the current user is requesting their own data or is an admin
         if (!isOwnResource(id, currentUser) && !isAdmin(currentUser)) {
-            throw new ResourceNotFoundException("Customer not found: " + id); // Return not found to avoid leaking existence info
+            throw new ResourceNotFoundException("Customer not found: " + id);
         }
 
         return customerRepository.findById(id)
@@ -59,12 +57,11 @@ public class CustomerService {
 
     @Transactional
     public Customer update(UUID id, UpdateCustomerCommand command, CustomUserDetails currentUser) {
-        // Check ownership
         if (!isOwnResource(id, currentUser) && !isAdmin(currentUser)) {
             throw new ResourceNotFoundException("Customer not found: " + id);
         }
 
-        Customer customer = getById(id, currentUser); // This will double-check ownership
+        Customer customer = getById(id, currentUser);
 
         if (command.phone() != null && !command.phone().equals(customer.getPhone())) {
             if (customerRepository.existsByPhone(command.phone())) {
@@ -87,12 +84,11 @@ public class CustomerService {
 
     @Transactional
     public void changePassword(UUID id, String oldPassword, String newPassword, CustomUserDetails currentUser) {
-        // Check ownership
         if (!isOwnResource(id, currentUser) && !isAdmin(currentUser)) {
             throw new ResourceNotFoundException("Customer not found: " + id);
         }
 
-        Customer customer = getById(id, currentUser); // This will double-check ownership
+        Customer customer = getById(id, currentUser);
 
         if (!passwordEncoder.matches(oldPassword, customer.getPasswordHash())) {
             throw new WrongPasswordException("Wrong password");
@@ -104,7 +100,6 @@ public class CustomerService {
 
     @Transactional
     public void delete(UUID id, CustomUserDetails currentUser) {
-        // Check ownership
         if (!isOwnResource(id, currentUser) && !isAdmin(currentUser)) {
             throw new ResourceNotFoundException("Customer not found: " + id);
         }
@@ -116,19 +111,15 @@ public class CustomerService {
     }
 
     public Customer addBonuses(UUID id, int amount, CustomUserDetails currentUser) {
-        // Check ownership
         if (!isOwnResource(id, currentUser) && !isAdmin(currentUser)) {
             throw new ResourceNotFoundException("Customer not found: " + id);
         }
 
-        Customer customer = getById(id, currentUser); // This will double-check ownership
+        Customer customer = getById(id, currentUser);
         customer.setBonuses(customer.getBonuses() + amount);
         return customerRepository.save(customer);
     }
 
-    /**
-     * Check if the requested resource ID matches the current user's ID.
-     */
     private boolean isOwnResource(UUID resourceId, CustomUserDetails currentUser) {
         try {
             UUID userId = UUID.fromString(currentUser.getId());
@@ -138,13 +129,7 @@ public class CustomerService {
         }
     }
 
-    /**
-     * Check if the current user has admin role.
-     * In a real system, you might have more sophisticated role checking.
-     */
     private boolean isAdmin(CustomUserDetails currentUser) {
-        // Check for admin roles - system_admin_role or restaurant_admin_role might have broader access
-        // For customer data access, we'll consider system_admin_role as having full access
         return "system_admin_role".equals(currentUser.getRole());
     }
 }

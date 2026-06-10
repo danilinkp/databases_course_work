@@ -30,7 +30,7 @@ public class AdminController {
     private final AdminService adminService;
 
     @PostMapping("/register")
-    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
+    @PreAuthorize("hasRole('system_admin_role')")
     @Operation(
         summary = "Создать администратора",
         description = "Создание нового администратора системы или ресторана. Системные администраторы могут назначать роли и привязывать к ресторанам. Требует JWT токен системного администратора."
@@ -40,17 +40,17 @@ public class AdminController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('SYSTEM_ADMIN') or hasRole('RESTAURANT_ADMIN')")
+    @PreAuthorize("hasRole('system_admin_role') or hasRole('restaurant_admin_role')")
     @Operation(
         summary = "Получить администратора по ID",
-        description = "Возвращает полную информацию об администраторе. Доступно системным и restaurant администраторам."
+        description = "Возвращает полную информацию об администраторе. Доступно системным администраторам и администраторам ресторана."
     )
     public ResponseEntity<AdminResponse> getAdmin(@PathVariable UUID id) {
         return ResponseEntity.ok(adminService.getAdminById(id));
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
+    @PreAuthorize("hasRole('system_admin_role')")
     @Operation(
         summary = "Получить всех администраторов",
         description = "Возвращает полный список всех администраторов системы с их ролями и привязками к ресторанам. Доступно только системным администраторам."
@@ -60,7 +60,7 @@ public class AdminController {
     }
 
     @GetMapping("/role/{role}")
-    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
+    @PreAuthorize("hasRole('system_admin_role')")
     @Operation(
         summary = "Получить администраторов по роли",
         description = "Фильтрация администраторов по роли: system_admin или restaurant_admin. Доступно только системным администраторам."
@@ -70,7 +70,7 @@ public class AdminController {
     }
 
     @GetMapping("/restaurant/{restaurantId}")
-    @PreAuthorize("hasRole('SYSTEM_ADMIN') or hasRole('RESTAURANT_ADMIN')")
+    @PreAuthorize("hasRole('system_admin_role') or hasRole('restaurant_admin_role')")
     @Operation(
         summary = "Получить администраторов ресторана",
         description = "Возвращает список всех администраторов, имеющих доступ к указанному ресторану. Доступно системным и администраторам данного ресторана."
@@ -80,7 +80,7 @@ public class AdminController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
+    @PreAuthorize("hasRole('system_admin_role')")
     @Operation(
         summary = "Обновить администратора",
         description = "Полное обновление информации об администраторе: email, пароль, роль, привязанные рестораны. Доступно только системным администраторам."
@@ -92,7 +92,7 @@ public class AdminController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
+    @PreAuthorize("hasRole('system_admin_role')")
     @Operation(
         summary = "Удалить администратора",
         description = "Полное удаление аккаунта администратора из системы. Доступно только системным администраторам."

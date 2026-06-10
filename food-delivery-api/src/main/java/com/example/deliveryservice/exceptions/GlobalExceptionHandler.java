@@ -2,6 +2,7 @@ package com.example.deliveryservice.exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -34,6 +35,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceOwnershipException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public Map<String, String> handleResourceOwnershipException(ResourceOwnershipException exception) {
+        return Map.of("error", exception.getMessage());
+    }
+
+    @ExceptionHandler({AccessDeniedException.class, SecurityException.class})
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public Map<String, String> handleAccessDeniedException(RuntimeException exception) {
         return Map.of("error", exception.getMessage());
     }
 

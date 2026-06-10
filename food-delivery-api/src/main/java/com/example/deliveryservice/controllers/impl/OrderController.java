@@ -1,7 +1,6 @@
 package com.example.deliveryservice.controllers.impl;
 
 import com.example.deliveryservice.dto.command.CreateOrderCommand;
-import com.example.deliveryservice.dto.response.OrderItemResponse;
 import com.example.deliveryservice.dto.response.OrderResponse;
 import com.example.deliveryservice.entity.Order;
 import com.example.deliveryservice.security.CustomUserDetails;
@@ -35,7 +34,7 @@ public class OrderController {
     @PostMapping
     @Operation(
         summary = "Создать заказ",
-        description = "Создание нового заказа на доставку. Клиент выбирает блюда из меню ресторана, указывает адрес доставки и специальные пожелания. После создания заказ переходит в статус 'confirmed'."
+        description = "Создание нового заказа на доставку. Клиент выбирает блюда из меню ресторана, указывает адрес доставки и специальные пожелания. После создания заказ получает статус 'pending' и ожидает подтверждения рестораном."
     )
     @ResponseStatus(HttpStatus.CREATED)
     public OrderResponse create(@RequestBody @Valid CreateOrderCommand command,
@@ -45,21 +44,18 @@ public class OrderController {
         }
         UUID customerId = UUID.fromString(currentUser.getId());
         Order order = orderService.create(customerId, command, currentUser);
-        List<OrderItemResponse> itemResponses = command.items().stream()
-                .map(item -> new OrderItemResponse(null, item.dishId(), null, null, item.quantity(), item.specialRequests()))
-                .toList();
-        return OrderResponse.fromEntity(order, itemResponses);
+        return toResponse(order);
     }
 
     @GetMapping("/{id}")
     @Operation(
         summary = "Получить заказ по ID",
-        description = "Возвращает полную информацию о заказе включая состав устройств, статус, сумму и адрес доставки. Доступно клиентам (их собственные заказы), ресторанам (их заказы), курьерам (их доставка) и администраторам."
+        description = "Возвращает полную информацию о заказе включая состав заказа, статус, сумму и адрес доставки. Доступно клиентам (их собственные заказы), ресторанам (их заказы), курьерам (их доставка) и администраторам."
     )
     public OrderResponse getById(@PathVariable UUID id,
                                  @AuthenticationPrincipal CustomUserDetails currentUser) {
         Order order = orderService.getById(id, currentUser);
-        return OrderResponse.fromEntity(order, List.of());
+        return toResponse(order);
     }
 
     @GetMapping("/customer/{customerId}")
@@ -75,7 +71,7 @@ public class OrderController {
             throw new AccessDeniedException("Access denied");
         }
         return orderService.getByCustomerId(customerId, currentUser).stream()
-                .map(order -> OrderResponse.fromEntity(order, List.of()))
+                .map(this::toResponse)
                 .toList();
     }
 
@@ -91,14 +87,14 @@ public class OrderController {
             throw new AccessDeniedException("Access denied");
         }
         return orderService.getByRestaurantId(restaurantId, currentUser).stream()
-                .map(order -> OrderResponse.fromEntity(order, List.of()))
+                .map(this::toResponse)
                 .toList();
     }
 
     @PatchMapping("/{id}/confirm")
     @Operation(
         summary = "Подтвердить заказ",
-        description = "Подтверждение заказа рестораном. Після подтверждения заказ переходит в статус 'confirmed' и начинается процесс приготовления. Доступно администраторам ресторана и системным администраторам."
+        description = "Подтверждение заказа рестораном. После подтверждения заказ переходит в статус 'confirmed' и начинается процесс приготовления. Доступно администраторам ресторана и системным администраторам."
     )
     public OrderResponse confirm(@PathVariable UUID id,
                                  @AuthenticationPrincipal CustomUserDetails currentUser) {
@@ -106,7 +102,7 @@ public class OrderController {
                 && !"system_admin_role".equals(currentUser.getRole())) {
             throw new AccessDeniedException("Access denied");
         }
-        return OrderResponse.fromEntity(orderService.confirm(id, currentUser), List.of());
+        return toResponse(orderService.confirm(id, currentUser));
     }
 
     @PatchMapping("/{id}/preparing")
@@ -120,7 +116,7 @@ public class OrderController {
                 && !"system_admin_role".equals(currentUser.getRole())) {
             throw new AccessDeniedException("Access denied");
         }
-        return OrderResponse.fromEntity(orderService.startPreparing(id, currentUser), List.of());
+        return toResponse(orderService.startPreparing(id, currentUser));
     }
 
     @PatchMapping("/{id}/ready")
@@ -134,7 +130,7 @@ public class OrderController {
                 && !"system_admin_role".equals(currentUser.getRole())) {
             throw new AccessDeniedException("Access denied");
         }
-        return OrderResponse.fromEntity(orderService.markReady(id, currentUser), List.of());
+        return toResponse(orderService.markReady(id, currentUser));
     }
 
     @PatchMapping("/{id}/assign-courier")
@@ -149,7 +145,7 @@ public class OrderController {
                 && !"system_admin_role".equals(currentUser.getRole())) {
             throw new AccessDeniedException("Access denied");
         }
-        return OrderResponse.fromEntity(orderService.assignCourier(id, courierId, currentUser), List.of());
+        return toResponse(orderService.assignCourier(id, courierId, currentUser));
     }
 
     @PatchMapping("/{id}/complete")
@@ -164,13 +160,13 @@ public class OrderController {
                 && !"system_admin_role".equals(currentUser.getRole())) {
             throw new AccessDeniedException("Access denied");
         }
-        return OrderResponse.fromEntity(orderService.completeDelivery(id, currentUser), List.of());
+        return toResponse(orderService.completeDelivery(id, currentUser));
     }
 
     @PatchMapping("/{id}/cancel")
     @Operation(
         summary = "Отменить заказ",
-        description = "Отмена заказа. Доступно клиентам (до начала приготовления) и системным администраторам в любой момент. Заказ переходит в статус 'cancelled'."
+        description = "Отмена заказа. Доступна клиенту-владельцу и системным администраторам, пока заказ не передан на доставку. Заказ переходит в статус 'cancelled'."
     )
     public OrderResponse cancel(@PathVariable UUID id,
                                 @AuthenticationPrincipal CustomUserDetails currentUser) {
@@ -178,6 +174,10 @@ public class OrderController {
                 && !"system_admin_role".equals(currentUser.getRole())) {
             throw new AccessDeniedException("Access denied");
         }
-        return OrderResponse.fromEntity(orderService.cancel(id, currentUser), List.of());
+        return toResponse(orderService.cancel(id, currentUser));
+    }
+
+    private OrderResponse toResponse(Order order) {
+        return OrderResponse.fromEntity(order, orderService.getItems(order.getId()));
     }
 }

@@ -3,9 +3,11 @@ package com.example.deliveryservice.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -68,28 +70,28 @@ public class Order {
     private BigDecimal deliveryFee = BigDecimal.ZERO;
 
     @Column(name = "discount", precision = 10, scale = 2)
+    @Builder.Default
     private BigDecimal discount = BigDecimal.ZERO;
 
     @Column(name = "total_amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal totalAmount;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "status", nullable = false)
+    @Builder.Default
     private OrderStatus status = OrderStatus.pending;
 
     @CreationTimestamp
     @Column(name = "created_at")
     private Instant createdAt;
 
-    @UpdateTimestamp
     @Column(name = "confirmed_at")
     private Instant confirmedAt;
 
-    @UpdateTimestamp
     @Column(name = "delivered_at")
     private Instant deliveredAt;
 
-    @UpdateTimestamp
     @Column(name = "cancelled_at")
     private Instant cancelledAt;
 

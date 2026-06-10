@@ -4,8 +4,8 @@ import com.example.deliveryservice.dto.command.CreateDishCommand;
 import com.example.deliveryservice.dto.command.UpdateDishCommand;
 import com.example.deliveryservice.dto.response.DishResponse;
 import com.example.deliveryservice.security.CustomUserDetails;
+import com.example.deliveryservice.services.AdminService;
 import com.example.deliveryservice.services.DishService;
-import com.example.deliveryservice.services.RestaurantService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -30,7 +30,7 @@ import java.util.UUID;
 public class DishController {
 
     private final DishService dishService;
-    private final RestaurantService restaurantService;
+    private final AdminService adminService;
 
     @PostMapping
     @Operation(
@@ -41,7 +41,6 @@ public class DishController {
     public DishResponse create(@PathVariable UUID restaurantId,
                                @RequestBody @Valid CreateDishCommand command,
                                @AuthenticationPrincipal CustomUserDetails currentUser) {
-        // Only restaurant admins or system admins can create dishes
         if (!isRestaurantOwnerOrAdmin(restaurantId, currentUser)) {
             throw new AccessDeniedException("Only restaurant owners can add dishes");
         }
@@ -55,40 +54,34 @@ public class DishController {
     )
     public List<DishResponse> getAll(@PathVariable UUID restaurantId,
                                      @AuthenticationPrincipal CustomUserDetails currentUser) {
-        // Only restaurant admins or system admins can view all dishes
         if (!isRestaurantOwnerOrAdmin(restaurantId, currentUser)) {
             throw new AccessDeniedException("Only restaurant owners can view dishes");
         }
-        return dishService.getByRestaurantId(restaurantId).stream()
-                .map(DishResponse::fromEntity)
-                .toList();
+        return dishService.getByRestaurantId(restaurantId);
     }
 
     @GetMapping("/available")
     @Operation(
         summary = "Получить доступные блюда",
-        description = "Возвращает список только доступных для заказа блюд ресторана. Этот endpoint публичный и используется клиентами для просмотра меню."
+        description = "Возвращает список только доступных для заказа блюд ресторана. Этот метод публичный и используется клиентами для просмотра меню."
     )
     public List<DishResponse> getAvailable(@PathVariable UUID restaurantId) {
-        // Anyone can view available dishes
-        return dishService.getAvailableByRestaurantId(restaurantId).stream()
-                .map(DishResponse::fromEntity)
-                .toList();
+        return dishService.getAvailableByRestaurantId(restaurantId);
     }
 
     @GetMapping("/{dishId}")
     @Operation(
         summary = "Получить блюдо по ID",
-        description = "Возвращает подробную информацию о конкретном блюде включая состав, калорийность и ингредиенты. Доступно администраторам ресторана."
+        description = "Возвращает подробную информацию о конкретном блюде включая состав, калорийность и ингредиенты. Доступные блюда видны всем, включая гостей; снятые с продажи блюда доступны только администраторам ресторана."
     )
     public DishResponse getById(@PathVariable UUID restaurantId,
                                 @PathVariable UUID dishId,
                                 @AuthenticationPrincipal CustomUserDetails currentUser) {
-        // Only restaurant admins, system admins, or system admins can view dish details
-        if (!isRestaurantOwnerOrAdmin(restaurantId, currentUser)) {
-            throw new AccessDeniedException("Only restaurant owners can view dish details");
+        DishResponse dish = dishService.getById(dishId);
+        if (Boolean.FALSE.equals(dish.isAvailable()) && !isRestaurantOwnerOrAdmin(restaurantId, currentUser)) {
+            throw new AccessDeniedException("Only restaurant owners can view unavailable dishes");
         }
-        return DishResponse.fromEntity(dishService.getById(dishId));
+        return dish;
     }
 
     @PatchMapping("/{dishId}")
@@ -100,7 +93,6 @@ public class DishController {
                                @PathVariable UUID dishId,
                                @RequestBody @Valid UpdateDishCommand command,
                                @AuthenticationPrincipal CustomUserDetails currentUser) {
-        // Only restaurant admins or system admins can update dishes
         if (!isRestaurantOwnerOrAdmin(restaurantId, currentUser)) {
             throw new AccessDeniedException("Only restaurant owners can update dishes");
         }
@@ -116,7 +108,6 @@ public class DishController {
                                         @PathVariable UUID dishId,
                                         @RequestParam boolean available,
                                         @AuthenticationPrincipal CustomUserDetails currentUser) {
-        // Only restaurant admins or system admins can change dish availability
         if (!isRestaurantOwnerOrAdmin(restaurantId, currentUser)) {
             throw new AccessDeniedException("Only restaurant owners can change dish availability");
         }
@@ -132,7 +123,6 @@ public class DishController {
     public void delete(@PathVariable UUID restaurantId,
                        @PathVariable UUID dishId,
                        @AuthenticationPrincipal CustomUserDetails currentUser) {
-        // Only restaurant admins or system admins can delete dishes
         if (!isRestaurantOwnerOrAdmin(restaurantId, currentUser)) {
             throw new AccessDeniedException("Only restaurant owners can delete dishes");
         }
@@ -140,17 +130,17 @@ public class DishController {
     }
 
     private boolean isRestaurantOwnerOrAdmin(UUID restaurantId, CustomUserDetails currentUser) {
+        if (currentUser == null) {
+            return false;
+        }
         String role = currentUser.getRole();
-        UUID currentUserId = UUID.fromString(currentUser.getId());
 
-        // System admins can access everything
         if ("system_admin_role".equals(role)) {
             return true;
         }
 
-        // Restaurant admins can only access their own restaurant
-        if ("restaurant_admin_role".equals(role) && currentUserId.equals(restaurantId)) {
-            return true;
+        if ("restaurant_admin_role".equals(role)) {
+            return adminService.ownsRestaurant(UUID.fromString(currentUser.getId()), restaurantId);
         }
 
         return false;

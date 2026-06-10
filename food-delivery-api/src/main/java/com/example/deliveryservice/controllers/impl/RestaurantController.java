@@ -6,6 +6,7 @@ import com.example.deliveryservice.dto.command.UpdateRestaurantCommand;
 import com.example.deliveryservice.dto.response.DeliveryZoneResponse;
 import com.example.deliveryservice.dto.response.RestaurantResponse;
 import com.example.deliveryservice.security.CustomUserDetails;
+import com.example.deliveryservice.services.AdminService;
 import com.example.deliveryservice.services.RestaurantService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -32,6 +33,7 @@ import java.util.UUID;
 public class RestaurantController {
 
     private final RestaurantService restaurantService;
+    private final AdminService adminService;
 
     @PostMapping
     @Operation(
@@ -49,7 +51,7 @@ public class RestaurantController {
         description = "Возвращает полную информацию о ресторане включая базовую информацию, адрес и статус активности."
     )
     public RestaurantResponse getById(@PathVariable UUID id) {
-        return RestaurantResponse.fromEntity(restaurantService.getById(id));
+        return restaurantService.getById(id);
     }
 
     @GetMapping
@@ -58,9 +60,7 @@ public class RestaurantController {
         description = "Возвращает список всех активных ресторанов, готовых принимать заказы."
     )
     public List<RestaurantResponse> getActive() {
-        return restaurantService.getActive().stream()
-                .map(RestaurantResponse::fromEntity)
-                .toList();
+        return restaurantService.getActive();
     }
 
     @GetMapping("/by-postal-code")
@@ -69,9 +69,7 @@ public class RestaurantController {
         description = "Поиск ресторанов, осуществляющих доставку в указанный почтовый район."
     )
     public List<RestaurantResponse> getByPostalCode(@RequestParam String postalCode) {
-        return restaurantService.getByPostalCode(postalCode).stream()
-                .map(RestaurantResponse::fromEntity)
-                .toList();
+        return restaurantService.getByPostalCode(postalCode);
     }
 
     @PatchMapping("/{id}")
@@ -137,16 +135,13 @@ public class RestaurantController {
             return false;
         }
         String role = currentUser.getRole();
-        UUID currentUserId = UUID.fromString(currentUser.getId());
 
-        // System admins can access everything
         if ("system_admin_role".equals(role)) {
             return true;
         }
 
-        // Restaurant admins can only access their own restaurant
-        if ("restaurant_admin_role".equals(role) && currentUserId.equals(restaurantId)) {
-            return true;
+        if ("restaurant_admin_role".equals(role)) {
+            return adminService.ownsRestaurant(UUID.fromString(currentUser.getId()), restaurantId);
         }
 
         return false;
